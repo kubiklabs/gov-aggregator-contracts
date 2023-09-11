@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "reward_denom",
+    "staking_contract",
+    "underlying_coin_denom"
+  ],
+  "properties": {
+    "batom_contract": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reward_denom": {
+      "type": "string"
+    },
+    "staking_contract": {
+      "type": "string"
+    },
+    "underlying_coin_denom": {
+      "type": "string"
+    }
+  }
+}

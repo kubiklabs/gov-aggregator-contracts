@@ -1,0 +1,15 @@
+[package]
+name = "cw721-controllers"
+version = "0.2.0"
+authors = ["CypherApe cypherape@protonmail.com"]
+edition = "2021"
+description = "A package for managing cw721 claims."
+repository = "https://github.com/DA0-DA0/dao-contracts"
+
+[dependencies]
+cosmwasm-std = { version = "1.3.0" }
+cw-utils = { version = "1.0.1" }
+cw-storage-plus = "1.1.0"
+schemars = "0.8.8"
+serde = { version = "1.0.175", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.21" }

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "reward_denom",
+    "staking_contract",
+    "underlying_coin_denom"
+  ],
+  "properties": {
+    "reward_denom": {
+      "type": "string"
+    },
+    "staking_contract": {
+      "type": "string"
+    },
+    "underlying_coin_denom": {
+      "type": "string"
+    }
+  }
+}
