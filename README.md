@@ -1,67 +1,45 @@
-# Neutron DAO
+# Accelarator DAO
 
-[![BSL 1.1 License][license-shield]][license-url]
-<!--[![Website][neutron-shield]][neutron-url]-->
-<!-- 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
--->
+## 1. Abstract
+PAIDs are interchain DAOs to aggregate the funds of community pools of multiple chains in order to make aggregated decision making for common goals.
 
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-  <a href="https://github.com/neutron-org">
-    <img src="https://avatars.githubusercontent.com/u/108675945?s=200&v=4" alt="Logo" width="80" height="80">
-  </a>
+Community pools are multiple cosmos chains can aggregate a portion of their funds into a common pool and collectively decide on how to spend the collective funds and stakers of each chain can reuse their staked voting power to vote in this DAO removing any additional friction for community pool voters.
 
-<h2 align="center">Neutron - DAO</h2>
+## 2. Problem Statement
+A community pool is a portion of assets held by the chain and controlled by on-chain voting. Community pools are in place to be utilized for growth of the chain, may that be for feature developement, seeding liquidity or any other spend that directly or indirectly accelarates the chain's growth.
 
-## Overview
+We're now in interchain era as IBC as matured by a lot and there are 100+ IBC enabled chains within cosmos. Each of these chains has their own community pool and that in most chains is only constituted of the chain's gas token, such as ATOM for Cosmos Hub, OSMO for Osmosis and so on.
 
-The Neutron governance is based on [DAO DAO](https://github.com/DA0-DA0/dao-contracts) contracts, with some modifications. In addition, we implemented 3 contracts that manage Neutron’s funds.
+Community pools can only spend in their own gas token and it's inefficient to convert the tokens to some other denom primarily due to lack of deep liquidity and secondary due to lack of infrastructure of doing so permissionlessly.
 
-- **The Neutron DAO.**
-- **Multiple subDAOs** Subdao is basically an entity to delegate a control of minor network properties. They're pretty similar to main DAO, but every SubDAO proposal is timelocked for a certain period, during which the main DAO can cancel the proposal via an overrule proposal. 
-- **The Treasury** holds the vested NTRNs and sends them to the Reserve and Distribution contracts.
-- **The Reserve** contract keeps funds vested from treasury for one-off payments
-- **The Distribution** contract is responsible of the second step of token distribution where tokens sent to this contract are distributed between `share holders`, where `share holders` are a configurable set of addresses with number of shares. This contract allows shareholders to withdraw collected tokens.
+There are cases where multiple community pool funded DAOs come in verbal aggrement to split funding a proposal amongst them, so there can be proposal which are partially funded by ATOM and partially by OSMO cause the proposal's work would be used both by Cosmos Hub and Osmosis chain. Here Neither ATOM is coverted to OSMO nor OSMO to ATOM through a liquidity pool before funding the proposal instead some portion of Hub's community pool (denominated in ATOM) and some portion of Osmosis (denominated in OSMO) is used to fund but this is bespoke and requires verbal agreements.
 
-## Testing 
+PAIDs solve this very problem by allowing community pools of multiple chains to form a DAO and permissionlessly send funds to this DAO and stakers of each of the chains can vote for proposals on this DAO. As an example, if a staker has 6% of all staked ATOM on Hub and the DAO has 50% say of Hub then this staker will automatically get 3% voting power in this DAO without having to unstake or restake their ATOM or any other asset.
 
-1. from `neutron` run: `make init`.
-2. run `./test_proposal.sh` or  `./test_subdao_proposal.sh`.
-3. see that proposal has passed.
+## 3. Contracts list
+The core contracts are as follows:
 
-There are a number of [integration tests](https://github.com/neutron-org/neutron-integration-tests/tree/main/src/testcases) to cover main functionality.
+1. **dao_core**: This contract is the core module of ADAO. It handles management of voting power and proposal modules,ICA helper module, executes messages and holds the DAO's treasury.
+2. **dao_voting**: Keeps track of the voting done so far.(Not implemented yet)
+3. **pre-propose**: Proposer will interact with this contract which will modify messages accordingly and call the **propose** contract.
+4. **Proposal**: Creates proposal,store it, vote is done by interacting with this contract and for passed proposal it will call core dao contract to execute the messages.
+5. **dao_vote_listener**: It is an ICQ contract which will query voting power on different chains and also further listen the events like delegation and store it for calculating respective voting-power in the DAO. It will do ICQ queries on remote chain for balances, staked amount, token tokens staked over IBC.
+6. **ica_helper**: Helper methods to do ICA actions such as registering remote address on each remote chain, creating commuity pool spend proposal, transferring funds from remote chain to the DAO treasury over IBC, sending the DAO treasury back to remote chain's community pool over IBC.
+7. **chain_registry**: Holds the IBC connection details of the remote chain with neutron. Things such as connectionId, channelds for ICA, ICQ, token transfer, status of the connection. This can be a single contract containing a list of all chains or multiple contracts and each one having list of connections to a given remote chain. Other chain metadata such as gas denom, community pool address could also be stored here.
 
 
-## License
 
-Distributed under the BSL 1.1 License. See [`LICENSE`](https://github.com/neutron-org/neutron-dao/blob/main/LICENSE) for more information.
+---------------------------------------------------------
 
-<!-- CONTRIBUTING -->
-## Contributing
+proposal contract -
+1. Need to change the data structure for quering voting power for storing it in the contract.
+2. Change data structure and voting , make it compatible for multi-chain voting.
 
-Contributions are what makes the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+core-contract
+1. Need to Implement the execution of proposal type messages that will be executed after proposal is passed.
 
-1. Fork the Project.
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the Branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+Voting contract-
+1. Haven't checked yet
 
-
-<!-- CONTACT -->
-## Contact
-
-Neutron - [@Neutron_org](https://twitter.com/Neutron_org) - info (a) neutron.org
-
-Project Link: [https://github.com/neutron-org/neutron-dao](https://github.com/neutron-org/neutron-dao)
-
-
-[license-shield]: https://img.shields.io/badge/license-BSL%201.1-green?style=for-the-badge
-[license-url]: https://github.com/neutron-org/neutron-tests/blob/main/LICENSE.txt
-[neutron-shield]: https://static.tildacdn.com/tild3833-3631-4236-b131-663933343237/3b1510ab-746d-4947-8.svg
-[neutron-url]: https://neutron.org
+ICQ contract
+1. Implement event listening and storage for it

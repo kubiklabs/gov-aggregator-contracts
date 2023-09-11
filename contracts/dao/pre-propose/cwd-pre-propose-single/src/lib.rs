@@ -6,4 +6,3 @@ pub use contract::{ExecuteMsg, InstantiateMsg, ProposeMessage, QueryMsg};
 // need an explicit dependency on the base contract to read queries.
 pub use cwd_pre_propose_base::msg::DepositInfoResponse;
 pub use cwd_pre_propose_base::state::Config;
-pub mod msg;

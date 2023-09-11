@@ -1,10 +1,19 @@
-# Neutron Interchain Txs Example Contract
+## Messages
 
-The example contract shows how to use and interact with [Interchain Txs Module](https://docs.neutron.org/neutron/modules/interchain-txs/overview).
+```
+pub enum ExecuteMsg {
+    Register {
+        connection_id: String,
+        interchain_account_id: String,
+    },
+}
 
-## How to test
+Register will register an interchain account on remote chain.
 
-1. run `make build` in the root folder of `neutron-sdk/`
-2. set up [Localnet](https://docs.neutron.org/neutron/build-and-run/localnet)
-3. cd `scripts/`
-4. `./test_intechain_txs.sh` (or `NEUTRON_DIR=/path/to/somedir/ ./test_interchain_txs.sh` if the neutron dir is not `../../neutron/`)
+- This account will be used to create proposals on remote chains and all other related things.
+
+More messages will be added.
+
+## Storage
+
+It has **INTERCHAIN_ACCOUNTS** map which will store the intechain accounts created on remote chains.

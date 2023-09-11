@@ -65,7 +65,6 @@ pub enum ProposalModuleStatus {
 /// The current configuration of the module.
 pub const CONFIG: Item<Config> = Item::new("config_v2");
 
-/// This will store the 
 pub const CHAIN_STAKE: Map<String, u8> = Map::new("chain_stake");
 pub const ICA_HELPER: Item<Addr> = Item::new("icq_helper_contract");
 pub const CONTRACT_REGISTRY: Item<Addr> = Item::new("contract_registry");

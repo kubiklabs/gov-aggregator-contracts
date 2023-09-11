@@ -20,6 +20,7 @@ cosmwasm-std = { version = "1.3.0" }
 cw2 = "1.1.0"
 serde = { version = "1.0.175", default-features = false, features = ["derive"] }
 cwd-pre-propose-base = { version = "*", path = "../../../../packages/cwd-pre-propose-base" }
+cwd-core = { path = "../../../dao/cwd-core" }
 neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
 schemars = "0.8.8"
 
@@ -31,7 +32,7 @@ cw4-group = "1.1.0"
 cw20 = "1.1.0"
 cw20-base = "1.1.0"
 cwd-proposal-single = { path = "../../proposal/cwd-proposal-single" }
-cwd-core = { path = "../../../dao/cwd-core" }
+
 cwd-voting = { path = "../../../../packages/cwd-voting" }
 cw-denom = { path = "../../../../packages/cw-denom" }
 cwd-interface = { path = "../../../../packages/cwd-interface" }

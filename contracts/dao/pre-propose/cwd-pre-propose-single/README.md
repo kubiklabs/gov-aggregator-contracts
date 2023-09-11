@@ -16,3 +16,28 @@ the following refund strategies are avaliable:
 
 This module may also be configured to only accept proposals from
 members (addresses with voting power) of the DAO.
+
+## Messages
+
+It only propose proposals of types ProposalType.
+```
+pub enum ProposalType {
+    BringRemoteFund{
+        demand_info: Vec<FundInfo>
+    },
+    AskFund{
+        demand_info: Vec<FundInfo>
+    }
+}
+// Maybe change this for Ask fund(get only denom and amount)
+pub struct FundInfo {
+    pub chain_id: String,
+    pub amount: Uint128,
+    pub denom: String
+}
+
+User will make transaction in this contract to propose a propsoal. The contract will then convert the messages for proposal contract check for deposits and other requirements and then call the proposal contract for proposal creation.
+
+Only these type of proposals will be proposed and this will be executed by the core contract after sucessfully passing.
+
+It does not store anything as it is only for prerequistie checks and transforming the messgaes.

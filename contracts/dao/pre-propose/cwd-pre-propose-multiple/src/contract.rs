@@ -82,14 +82,14 @@ pub fn execute(
                 choices,
             },
         },
-        ExecuteMsg::Withdraw { denom } => ExecuteInternal::Withdraw { denom },
-        ExecuteMsg::UpdateConfig {
-            deposit_info,
-            open_proposal_submission,
-        } => ExecuteInternal::UpdateConfig {
-            deposit_info,
-            open_proposal_submission,
-        },
+        // ExecuteMsg::Withdraw { denom } => ExecuteInternal::Withdraw { denom },
+        // ExecuteMsg::UpdateConfig {
+        //     deposit_info,
+        //     open_proposal_submission,
+        // } => ExecuteInternal::UpdateConfig {
+        //     deposit_info,
+        //     open_proposal_submission,
+        // },
         ExecuteBase::ProposalCreatedHook {
             proposal_id,
             proposer,
