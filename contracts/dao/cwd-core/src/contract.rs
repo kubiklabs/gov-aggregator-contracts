@@ -2,21 +2,21 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult, SubMsg, WasmMsg, WasmQuery, QueryRequest,
+    StdResult, SubMsg, WasmMsg, WasmQuery, QueryRequest, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_utils::{parse_reply_instantiate_data, Duration};
 
 use cw_paginate::{paginate_map, paginate_map_values};
 use cwd_interface::{voting, ModuleInstantiateInfo};
-use neutron_sdk::bindings::msg::NeutronMsg;
+// use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType};
+use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType, ChainStake, IcqQueryMsg};
 use crate::query::{DumpStateResponse, GetItemResponse, PauseInfoResponse};
 use crate::state::{
     Config, ProposalModule, ProposalModuleStatus, ACTIVE_PROPOSAL_MODULE_COUNT, CONFIG, ITEMS,
-    PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER,
+    PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER, ICQ_HELPER,
 };
 
 pub(crate) const CONTRACT_NAME: &str = "crates.io:cwd-subdao-core";
@@ -26,6 +26,7 @@ const PROPOSAL_MODULE_REPLY_ID: u64 = 0;
 const VOTE_MODULE_INSTANTIATE_REPLY_ID: u64 = 1;
 const VOTE_MODULE_UPDATE_REPLY_ID: u64 = 2;
 const ICA_HELPER_INSTANTIATE_REPLY_ID: u64 = 3;
+const ICQ_HELPER_INSTANTIATE_REPLY_ID: u64 = 4;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -56,6 +57,12 @@ pub fn instantiate(
         .into_wasm_msg(env.contract.address.clone());
     let ica_module_msg: SubMsg<ProposalType> =
         SubMsg::reply_on_success(ica_module_msg, ICA_HELPER_INSTANTIATE_REPLY_ID);
+
+    let icq_module_msg = msg
+        .icq_helper_module_instantiate_info
+        .into_wasm_msg(env.contract.address.clone());
+    let icq_module_msg: SubMsg<ProposalType> =
+        SubMsg::reply_on_success(icq_module_msg, ICQ_HELPER_INSTANTIATE_REPLY_ID);
 
     let proposal_module_msgs: Vec<SubMsg<ProposalType>> = msg
         .proposal_modules_instantiate_info
@@ -361,6 +368,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::VotingPowerAtHeight { address, height } => {
             query_voting_power_at_height(deps, address, height)
         }
+        QueryMsg::AggregateVotingPowerAllChain { chains,address } => {
+            query_voting_power_and_aggregate(deps, chains,address)
+        }
+        QueryMsg::ListChainVotingPowerAtHeight { chains } => {
+            query_chains_stake_voting_power(deps, chains)
+        }
         QueryMsg::ActiveProposalModules { start_after, limit } => {
             query_active_proposal_modules(deps, start_after, limit)
         }
@@ -489,6 +502,57 @@ pub fn query_voting_power_at_height(
         &voting::Query::VotingPowerAtHeight { height, address },
     )?;
     to_binary(&voting_power)
+}
+pub fn query_chains_stake_voting_power(
+    deps: Deps,
+    chains: Vec<String>
+) -> StdResult<Binary> {
+    let icq_helper = ICQ_HELPER.load(deps.storage)?;
+    let power_per_chain: Vec<ChainStake> = deps.querier.query_wasm_smart(
+        icq_helper,
+        &IcqQueryMsg::GetChainDelegations { chains },
+    )?;
+    let net_power = calculate_net_voting_power(deps, power_per_chain);
+    to_binary(&voting::TotalPowerAtHeightResponse{
+        power: net_power,
+        height: 0
+    })
+}
+pub fn query_voting_power_and_aggregate(
+    deps: Deps,
+    chains: Vec<String>,
+    address: String
+) -> StdResult<Binary> {
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////QUERY ALL VOTING POWER FROM ICQ CONTRACT AND CONVERT IT INTO ONE NET POWER////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    let icq_helper = ICQ_HELPER.load(deps.storage)?;
+    let power_per_chain: Vec<ChainStake> = deps.querier.query_wasm_smart(
+        icq_helper,
+        &IcqQueryMsg::GetChainDelegations { chains },
+    )?;
+    let net_power = calculate_net_voting_power(deps, power_per_chain);
+    to_binary(&voting::TotalPowerAtHeightResponse{
+        power: net_power,
+        height: 0
+    })
+}
+
+fn calculate_net_voting_power(deps:Deps,chains: Vec<ChainStake>) -> Uint128 {
+    let mut total_power = Uint128::default();
+    for chain in chains {
+        if !CHAIN_STAKE.has(deps.storage, chain.clone().chain_id) {
+            continue;
+        }
+        let chain_val = CHAIN_STAKE.load(deps.storage, chain.clone().chain_id).unwrap();
+        total_power = total_power.checked_div(Uint128::new(100)).unwrap().checked_mul(Uint128::new(chain_val.into())).unwrap();
+    }
+
+    total_power
 }
 
 pub fn query_total_power_at_height(deps: Deps, height: Option<u64>) -> StdResult<Binary> {
@@ -626,7 +690,22 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<ProposalTy
                 return Err(ContractError::MultipleIcaContract {});
             }
 
-            VOTING_REGISTRY_MODULE.save(deps.storage, &ica_helper_address)?;
+            ICA_HELPER.save(deps.storage, &ica_helper_address)?;
+
+            Ok(Response::default().add_attribute("ica_helper_address", ica_helper_address))
+        }
+        ICQ_HELPER_INSTANTIATE_REPLY_ID => {
+            let res = parse_reply_instantiate_data(msg)?;
+            let ica_helper_address = deps.api.addr_validate(&res.contract_address)?;
+            let current = ICQ_HELPER.may_load(deps.storage)?;
+
+            // Make sure a bug in instantiation isn't causing us to
+            // make more than one voting module.
+            if current.is_some() {
+                return Err(ContractError::MultipleIcaContract {});
+            }
+
+            ICQ_HELPER.save(deps.storage, &ica_helper_address)?;
 
             Ok(Response::default().add_attribute("ica_helper_address", ica_helper_address))
         }

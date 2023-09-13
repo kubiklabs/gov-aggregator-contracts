@@ -1,0 +1,62 @@
+[package]
+name = "icq_helper"
+version = "0.1.0"
+authors = ["pr0n00gler <misha.m@p2p.org>"]
+edition = "2021"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+library = []
+
+[dependencies]
+
+
+#neutron-sdk = { path = "../../packages/neutron-sdk", default-features = false, version = "0.5.0"}
+base64 = "0.13.0"
+cosmos-sdk-proto = { version = "0.14.0", default-features = false }
+prost = "0.11"
+serde-json-wasm = "0.4.1"
+
+
+cosmwasm-schema = {version = "1.3.0"}
+cosmwasm-std = {version = "1.3.0"}
+#cosmwasm-storage = {version = "1.3.0"}
+#cw-core-v1 = {package = "cw-core", version = "0.1.0", git = "https://github.com/DA0-DA0/dao-contracts.git", tag = "v1.0.0"}
+#cw-paginate = {path = "../../../packages/cw-paginate"}
+cw-storage-plus = "1.1.0"
+cw-utils = {version = "1.0.1"}
+cw2 = "1.1.0"
+cw20 = "1.1.0"
+cw721 = "0.18.0"
+cwd-interface = {path = "../../../packages/cwd-interface"}
+cwd-macros = {path = "../../../packages/cwd-macros"}
+neutron-sdk = {package = "neutron-sdk", version = "0.6.1"}
+schemars = "0.8.8"
+serde = {version = "1.0.175", default-features = false, features = ["derive"]}
+thiserror = {version = "1.0"}
+
+
+

@@ -25,7 +25,7 @@ pub enum ProposeMessage {
     Propose {
         title: String,
         description: String,
-        msgs: Vec<CosmosMsg<ProposalType>>,
+        msgs: CosmosMsg<ProposalType>,
     },
 }
 
@@ -42,7 +42,7 @@ enum ProposeMessageInternal {
     Propose {
         title: String,
         description: String,
-        msgs: Vec<CosmosMsg<ProposalType>>,
+        msgs: CosmosMsg<ProposalType>,
         proposer: Option<String>,
     },
 }

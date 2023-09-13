@@ -60,4 +60,6 @@ pub enum ContractError {
 
     #[error("received a reply failure with an invalid ID: ({id})")]
     InvalidReplyID { id: u64 },
+    #[error("Msg send to execute is invalid ")]
+    InvalidMsg {},
 }

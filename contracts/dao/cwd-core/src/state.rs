@@ -66,7 +66,8 @@ pub enum ProposalModuleStatus {
 pub const CONFIG: Item<Config> = Item::new("config_v2");
 
 pub const CHAIN_STAKE: Map<String, u8> = Map::new("chain_stake");
-pub const ICA_HELPER: Item<Addr> = Item::new("icq_helper_contract");
+pub const ICA_HELPER: Item<Addr> = Item::new("ica_helper_contract");
+pub const ICQ_HELPER: Item<Addr> = Item::new("icq_helper_contract");
 pub const CONTRACT_REGISTRY: Item<Addr> = Item::new("contract_registry");
 
 /// The time the DAO will unpause. Here be dragons: this is not set if

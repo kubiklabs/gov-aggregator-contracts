@@ -57,7 +57,7 @@ pub enum ExecuteMsg {
         /// pre-propose module is attached, this must be Some and will
         /// set the proposer of the proposal it creates.
         proposer: Option<String>,
-    },/*
+    },
     /// Votes on a proposal. Voting power is determined by the DAO's
     /// voting power module.
     Vote {
@@ -72,6 +72,7 @@ pub enum ExecuteMsg {
         /// The ID of the proposal to execute.
         proposal_id: u64,
     },
+    /* 
     /// Closes a proposal that has failed (either not passed or timed
     /// out). If applicable this will cause the proposal deposit
     /// associated wth said proposal to be returned.

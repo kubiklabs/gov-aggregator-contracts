@@ -19,7 +19,7 @@ use cwd_voting::reply::{
 };
 use cwd_voting::status::Status;
 use cwd_voting::threshold::Threshold;
-use cwd_voting::voting::{get_total_power, get_voting_power, validate_voting_period, Vote, Votes};
+use cwd_voting::voting::{get_total_power, get_voting_power, validate_voting_period, Vote, Votes, get_all_chain_power, get_voting_power_from_all_chain};
 // use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::msg::MigrateMsg;
@@ -93,8 +93,8 @@ pub fn execute(
             msgs,
             proposer,
         } => execute_propose(deps, env, info.sender, title, description, msgs, proposer),
-        // ExecuteMsg::Vote { proposal_id, vote } => execute_vote(deps, env, info, proposal_id, vote),
-        // ExecuteMsg::Execute { proposal_id } => execute_execute(deps, env, info, proposal_id),
+        ExecuteMsg::Vote { proposal_id, vote } => execute_vote(deps, env, info, proposal_id, vote),
+        ExecuteMsg::Execute { proposal_id } => execute_execute(deps, env, info, proposal_id),
         // ExecuteMsg::Close { proposal_id } => execute_close(deps, env, info, proposal_id),
         // ExecuteMsg::UpdateConfig {
         //     threshold,
@@ -128,7 +128,25 @@ pub fn execute(
         // }
     }
 }
-
+fn aggregate_involved_chains(msgs: Vec<CosmosMsg<ProposalType>>) -> Vec<String> {
+    let mut chains_involve = Vec::new();
+    for msg in msgs {
+        match msg {
+            cosmwasm_std::CosmosMsg::Custom(ProposalType::AskFund { demand_info }) => {
+                for demand in demand_info {
+                    chains_involve.push(demand.chain_id);
+                }
+            },
+            cosmwasm_std::CosmosMsg::Custom(ProposalType::BringRemoteFund { demand_info }) => {
+                for demand in demand_info {
+                    chains_involve.push(demand.chain_id);
+                }
+            },
+            _ => {}
+        }
+    }
+    chains_involve
+}
 pub fn execute_propose(
     deps: DepsMut,
     env: Env,
@@ -158,10 +176,11 @@ pub fn execute_propose(
         }
         _ => return Err(ContractError::InvalidProposer {}),
     };
+    let chains_involve = aggregate_involved_chains(msgs.clone());
 
     let expiration = config.max_voting_period.after(&env.block);
 
-    let total_power = get_total_power(deps.as_ref(), config.dao, Some(env.block.height))?;
+    let total_power = get_all_chain_power(deps.as_ref(), config.dao, Some(env.block.height), chains_involve)?;
 
     let proposal = {
         // Limit mutability to this block.
@@ -344,11 +363,13 @@ pub fn execute_vote(
     if prop.current_status(&env.block) != Status::Open {
         return Err(ContractError::NotOpen { id: proposal_id });
     }
-
-    let vote_power = get_voting_power(
+    let involve_chain = aggregate_involved_chains(prop.msgs.clone());
+    // It is the voting power aggregated considering all involved chains
+    let vote_power = get_voting_power_from_all_chain(
         deps.as_ref(),
         info.sender.clone(),
         config.dao,
+        involve_chain,
         Some(prop.start_height),
     )?;
     if vote_power.is_zero() {

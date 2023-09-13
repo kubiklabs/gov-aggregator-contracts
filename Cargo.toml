@@ -2,10 +2,12 @@
 members = [
     "contracts/dao/cwd-core",
     "contracts/dao/ica_helper",
+    "contracts/dao/icq_helper",
     "contracts/dao/chain_registry",
     "contracts/dao/proposal/*",
     "contracts/dao/pre-propose/*",
     "contracts/dao/voting/*",
+    
 
     "packages/*",
 ]

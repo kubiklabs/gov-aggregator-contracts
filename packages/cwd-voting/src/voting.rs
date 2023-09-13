@@ -3,7 +3,7 @@ use cw_utils::Duration;
 use cwd_interface::voting;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
+use cwd_core::msg::QueryMsg::{ListChainVotingPowerAtHeight,AggregateVotingPowerAllChain};
 use crate::threshold::PercentageThreshold;
 
 // We multiply by this when calculating needed_votes in order to round
@@ -253,11 +253,36 @@ pub fn get_voting_power(
     Ok(response.power)
 }
 
+// Send request to Dao to query current voting power
+// Dao will query the current power and subtract the current voting power
+pub fn get_voting_power_from_all_chain(
+    deps: Deps,
+    address: Addr,
+    dao: Addr,
+    chains: Vec<String>,
+    height: Option<u64>,
+) -> StdResult<Uint128> {
+    let response: voting::VotingPowerAtHeightResponse = deps.querier.query_wasm_smart(
+        dao,
+        &AggregateVotingPowerAllChain {
+            chains,
+            address: address.to_string()
+        },
+    )?;
+    Ok(response.power)
+}
+
 /// A height of None will query for the current block height.
 pub fn get_total_power(deps: Deps, dao: Addr, height: Option<u64>) -> StdResult<Uint128> {
     let response: voting::TotalPowerAtHeightResponse = deps
         .querier
         .query_wasm_smart(dao, &voting::Query::TotalPowerAtHeight { height })?;
+    Ok(response.power)
+}
+pub fn get_all_chain_power(deps: Deps, dao: Addr, height: Option<u64>,chains: Vec<String>) -> StdResult<Uint128> {
+    let response: voting::TotalPowerAtHeightResponse = deps
+        .querier
+        .query_wasm_smart(dao, &ListChainVotingPowerAtHeight { chains })?;
     Ok(response.power)
 }
 

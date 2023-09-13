@@ -30,8 +30,8 @@ pub struct SingleChoiceProposal {
     /// The threshold at which this proposal will pass.
     pub threshold: Threshold,
     /// The total amount of voting power at the time of this
-    /// proposal's creation.
-    pub total_power: Map<String,Uint128>,
+    /// proposal's creation, It is ((% stake) * total stake)
+    pub total_power: Uint128,
     /// The messages that will be executed should this proposal pass.
     pub msgs: Vec<CosmosMsg<ProposalType>>,
     pub status: Status,

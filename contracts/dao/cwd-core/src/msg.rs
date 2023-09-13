@@ -9,7 +9,7 @@ use cwd_macros::{info_query, voting_query};
 // use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
+use cw_storage_plus::{Map};
 // use crate::query::SubDao;
 use crate::state::{Config, ChainStakeInfo};
 
@@ -20,6 +20,14 @@ pub struct InitialItem {
     pub key: String,
     /// The value the item will have at instantiation time.
     pub value: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum IcqQueryMsg {
+    GetChainDelegations { 
+        chains: Vec<String>    
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -35,6 +43,7 @@ pub struct InstantiateMsg {
     
     /// Instantiate information for the ica helper contract
     pub ica_helper_module_instantiate_info: ModuleInstantiateInfo,
+    pub icq_helper_module_instantiate_info: ModuleInstantiateInfo,
     /// Instantiate information for the core contract's
     /// proposal modules.
     // NOTE: the pre-propose-base package depends on it being the case
@@ -66,7 +75,10 @@ pub enum RegistryQueryMsg{
         remote_chain: String
     }
 }
-    
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct ChainStakeVotingPowerResponse {
+    pub power: Vec<ChainStake>
+}
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum IcaHelperMsg {
@@ -147,6 +159,17 @@ pub enum QueryMsg {
         start_after: Option<String>,
         limit: Option<u32>,
     },
+
+    // Check this out
+    #[returns(TotalPowerAtHeightResponse)]
+    ListChainVotingPowerAtHeight {
+        chains: Vec<String>
+    },
+    #[returns(TotalPowerAtHeightResponse)]
+    AggregateVotingPowerAllChain {
+        chains: Vec<String>,
+        address: String,
+    },
     /// Gets the active proposal modules associated with the
     /// contract. Returns Vec<ProposalModule>.
     #[returns(Vec<crate::state::ProposalModule>)]
@@ -193,6 +216,11 @@ pub struct FundInfo {
     pub chain_id: String,
     pub amount: Uint128,
     pub denom: String
+}
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct ChainStake {
+    pub chain_id: String,
+    pub stake: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

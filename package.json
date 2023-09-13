@@ -1,0 +1,16 @@
+{
+  "name": "query-voting",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p ."
+  },
+  "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.28.11",
+    "@types/chai": "^4.3.0",
+    "chai": "^4.3.4",
+    "@arufa/wasmkit": "^0.2.5"
+  }
+}
