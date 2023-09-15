@@ -17,48 +17,16 @@
     {
       "type": "object",
       "required": [
-        "state"
+        "connection_id"
       ],
       "properties": {
-        "state": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "required": [
-        "accrued_rewards"
-      ],
-      "properties": {
-        "accrued_rewards": {
+        "connection_id": {
           "type": "object",
           "required": [
-            "address"
+            "remote_chain"
           ],
           "properties": {
-            "address": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "required": [
-        "holder"
-      ],
-      "properties": {
-        "holder": {
-          "type": "object",
-          "required": [
-            "address"
-          ],
-          "properties": {
-            "address": {
+            "remote_chain": {
               "type": "string"
             }
           }

@@ -113,6 +113,58 @@
       "additionalProperties": false
     },
     {
+      "type": "object",
+      "required": [
+        "list_chain_voting_power_at_height"
+      ],
+      "properties": {
+        "list_chain_voting_power_at_height": {
+          "type": "object",
+          "required": [
+            "chains"
+          ],
+          "properties": {
+            "chains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "aggregate_voting_power_all_chain"
+      ],
+      "properties": {
+        "aggregate_voting_power_all_chain": {
+          "type": "object",
+          "required": [
+            "address",
+            "chains"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "chains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Gets the active proposal modules associated with the contract. Returns Vec<ProposalModule>.",
       "type": "object",
       "required": [
@@ -171,59 +223,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns all SubDAOs with their charters in a vec start_after is bound exclusive and asks for a string address",
-      "type": "object",
-      "required": [
-        "list_sub_daos"
-      ],
-      "properties": {
-        "list_sub_daos": {
-          "type": "object",
-          "properties": {
-            "limit": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "uint32",
-              "minimum": 0.0
-            },
-            "start_after": {
-              "type": [
-                "string",
-                "null"
-              ]
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the SubDAO for a specific address if it in the list",
-      "type": "object",
-      "required": [
-        "get_sub_dao"
-      ],
-      "properties": {
-        "get_sub_dao": {
-          "type": "object",
-          "required": [
-            "address"
-          ],
-          "properties": {
-            "address": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Implements the DAO Star standard: https://daostar.one/EIP",
+      "description": "Returns all SubDAOs with their charters in a vec start_after is bound exclusive and asks for a string address Implements the DAO Star standard: https://daostar.one/EIP",
       "type": "object",
       "required": [
         "dao_u_r_i"

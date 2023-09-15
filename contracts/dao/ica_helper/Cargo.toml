@@ -1,8 +1,8 @@
 [package]
-authors = ["ekez <ekez@withoutdoing.com>"]
+name = "ica-helper"
+authors = ["Adarsh"]
 description = "A DAO DAO core module."
 edition = "2021"
-name = "ica-helper"
 version = "0.2.0"
 
 [lib]

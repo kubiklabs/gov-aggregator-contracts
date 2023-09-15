@@ -1,8 +1,8 @@
 [package]
-authors = ["ekez <ekez@withoutdoing.com>"]
+name = "cwd-core"
+authors = ["Adarsh"]
 description = "A DAO DAO core module."
 edition = "2021"
-name = "cwd-core"
 repository = "https://github.com/DA0-DA0/dao-contracts"
 version = "0.2.0"
 

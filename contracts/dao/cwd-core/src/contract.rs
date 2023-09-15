@@ -113,6 +113,7 @@ pub fn instantiate(
         .add_attribute("sender", info.sender)
         .add_submessage(vote_module_msg)
         .add_submessage(ica_module_msg)
+        .add_submessage(icq_module_msg)
         .add_submessages(proposal_module_msgs)
         .add_messages(messages))
 }

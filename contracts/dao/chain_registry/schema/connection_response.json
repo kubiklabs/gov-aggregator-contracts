@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ConfigResponse",
+  "title": "ConnectionResponse",
   "type": "object",
   "required": [
-    "admin"
+    "connection_id"
   ],
   "properties": {
-    "admin": {
+    "connection_id": {
       "type": "string"
     }
   }

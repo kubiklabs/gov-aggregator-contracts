@@ -1,5 +1,6 @@
 use cosmwasm_std::{CosmosMsg, StdError, StdResult, Uint128};
-use neutron_sdk::bindings::msg::NeutronMsg;
+use cwd_core::msg::ProposalType;
+// use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -101,7 +102,7 @@ pub struct MultipleChoiceOptions {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MultipleChoiceOption {
     pub description: String,
-    pub msgs: Option<Vec<CosmosMsg<NeutronMsg>>>,
+    pub msgs: Option<Vec<CosmosMsg<ProposalType>>>,
 }
 
 /// Multiple choice options that have been verified for correctness, and have all fields
@@ -119,7 +120,7 @@ pub struct CheckedMultipleChoiceOption {
     pub index: u32,
     pub option_type: MultipleChoiceOptionType,
     pub description: String,
-    pub msgs: Option<Vec<CosmosMsg<NeutronMsg>>>,
+    pub msgs: Option<Vec<CosmosMsg<ProposalType>>>,
     pub vote_count: Uint128,
 }
 

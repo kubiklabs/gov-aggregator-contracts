@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, CosmosMsg, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Uint128, CustomMsg};
 use cw_utils::Duration;
 use cwd_interface::voting::{
     InfoResponse, TotalPowerAtHeightResponse, VotingPowerAtHeightResponse,
@@ -210,6 +210,18 @@ pub enum ProposalType {
         demand_info: Vec<FundInfo>
     }
 }
+
+impl From<ProposalType> for CosmosMsg<ProposalType> {
+    fn from(msg: ProposalType) -> CosmosMsg<ProposalType> {
+        CosmosMsg::Custom(msg)
+    }
+}
+
+impl CustomMsg for ProposalType {}
+
+
+
+
 // Maybe change this for Ask fund(get only denom and amount)
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct FundInfo {
