@@ -1,8 +1,8 @@
 [package]
+name = "cwd-pre-propose-base"
 authors = ["ekez ekez@withoutdoing.com"]
 description = "A package for implementing pre-propose modules."
 edition = "2021"
-name = "cwd-pre-propose-base"
 repository = "https://github.com/DA0-DA0/dao-contracts"
 version = "0.2.0"
 
