@@ -9,10 +9,10 @@ use cw_utils::{parse_reply_instantiate_data, Duration};
 
 use cw_paginate::{paginate_map, paginate_map_values};
 use cwd_interface::{voting, ModuleInstantiateInfo};
-// use neutron_sdk::bindings::msg::NeutronMsg;
+use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType, ChainStake, IcqQueryMsg};
+use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType, ChainStake, IcqQueryMsg, FundInfo};
 use crate::query::{DumpStateResponse, GetItemResponse, PauseInfoResponse};
 use crate::state::{
     Config, ProposalModule, ProposalModuleStatus, ACTIVE_PROPOSAL_MODULE_COUNT, CONFIG, ITEMS,
@@ -34,7 +34,7 @@ pub fn instantiate(
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     let config = Config {
@@ -45,26 +45,26 @@ pub fn instantiate(
     config.validate()?;
     CONFIG.save(deps.storage, &config)?;
 
-    let vote_module_msg = msg
-        .voting_registry_module_instantiate_info
-        .into_wasm_msg(env.contract.address.clone());
-    let vote_module_msg: SubMsg<ProposalType> =
-        SubMsg::reply_on_success(vote_module_msg, VOTE_MODULE_INSTANTIATE_REPLY_ID);
+    // let vote_module_msg = msg
+    //     .voting_registry_module_instantiate_info
+    //     .into_wasm_msg(env.contract.address.clone());
+    // let vote_module_msg: SubMsg<NeutronMsg> =
+    //     SubMsg::reply_on_success(vote_module_msg, VOTE_MODULE_INSTANTIATE_REPLY_ID);
 
     // Instantiate ICA helper contract which will take care of everything
     let ica_module_msg = msg
         .ica_helper_module_instantiate_info
         .into_wasm_msg(env.contract.address.clone());
-    let ica_module_msg: SubMsg<ProposalType> =
+    let ica_module_msg: SubMsg<NeutronMsg> =
         SubMsg::reply_on_success(ica_module_msg, ICA_HELPER_INSTANTIATE_REPLY_ID);
 
     let icq_module_msg = msg
         .icq_helper_module_instantiate_info
         .into_wasm_msg(env.contract.address.clone());
-    let icq_module_msg: SubMsg<ProposalType> =
+    let icq_module_msg: SubMsg<NeutronMsg> =
         SubMsg::reply_on_success(icq_module_msg, ICQ_HELPER_INSTANTIATE_REPLY_ID);
 
-    let proposal_module_msgs: Vec<SubMsg<ProposalType>> = msg
+    let proposal_module_msgs: Vec<SubMsg<NeutronMsg>> = msg
         .proposal_modules_instantiate_info
         .into_iter()
         .map(|info| info.into_wasm_msg(env.contract.address.clone()))
@@ -79,9 +79,9 @@ pub fn instantiate(
     }
     // First check the list is in contract registry
     // Save the contracts in CHAIN_STAKE
-    let mut messages:Vec<CosmosMsg<ProposalType>> = vec![];
+    let mut messages:Vec<CosmosMsg<NeutronMsg>> = vec![];
     CONTRACT_REGISTRY.save(deps.storage, &msg.contract_registry)?;
-    let helper_addr = msg.icq_helper_addr;
+    // let helper_addr = msg.icq_helper_addr;
 
     
     for chain in &(msg.chain_list) {
@@ -111,7 +111,7 @@ pub fn instantiate(
     Ok(Response::new()
         .add_attribute("action", "instantiate")
         .add_attribute("sender", info.sender)
-        .add_submessage(vote_module_msg)
+        // .add_submessage(vote_module_msg)
         .add_submessage(ica_module_msg)
         .add_submessage(icq_module_msg)
         .add_submessages(proposal_module_msgs)
@@ -124,7 +124,7 @@ pub fn execute(
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     // No actions can be performed while the DAO is paused.
     if let Some(expiration) = PAUSED.may_load(deps.storage)? {
         if !expiration.is_expired(&env.block) {
@@ -159,7 +159,7 @@ pub fn execute_pause(
     env: Env,
     sender: Addr,
     pause_duration: Duration,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if sender != env.contract.address {
         return Err(ContractError::Unauthorized {});
     }
@@ -178,7 +178,7 @@ pub fn execute_proposal_hook(
     deps: Deps,
     sender: Addr,
     msgs: Vec<CosmosMsg<ProposalType>>,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     let module = PROPOSAL_MODULES
         .may_load(deps.storage, sender.clone())?
         .ok_or(ContractError::Unauthorized {})?;
@@ -187,18 +187,40 @@ pub fn execute_proposal_hook(
     if module.status != ProposalModuleStatus::Enabled {
         return Err(ContractError::ModuleDisabledCannotExecute { address: sender });
     }
+    let messages = Vec::new();
+    for msg in msgs {
+            let message = match msg {
+                cosmwasm_std::CosmosMsg::Custom(ProposalType::BringRemoteFund { demand_info }) => create_ica_proposal_message_on_remote_chain_for_fund(demand_info),
+                cosmwasm_std::CosmosMsg::Custom(ProposalType::AskFund { demand_info }) => disburse_fund(),
+                _ => return Err(ContractError::ProposalMsgNotFound {})
+            };
+            messages.push(message);
+    }
 
     Ok(Response::default()
         .add_attribute("action", "execute_proposal_hook")
         .add_messages(msgs))
 }
 
+fn create_ica_proposal_message_on_remote_chain_for_fund(
+    // deps: DepsMut,
+    // env: Env,
+    // sender: Addr,
+    demand_info: Vec<FundInfo>
+) -> NeutronMsg {
+    // create msg for registering proposal on ica contract
+    for demands in demand_info {
+
+
+    }
+    
+}
 pub fn execute_update_config(
     deps: DepsMut,
     env: Env,
     sender: Addr,
     config: Config,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -224,7 +246,7 @@ pub fn execute_update_voting_module(
     env: Env,
     sender: Addr,
     module: ModuleInstantiateInfo,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -243,7 +265,7 @@ pub fn execute_update_proposal_modules(
     sender: Addr,
     to_add: Vec<ModuleInstantiateInfo>,
     to_disable: Vec<String>,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -277,7 +299,7 @@ pub fn execute_update_proposal_modules(
         Ok(count - disable_count)
     })?;
 
-    let to_add: Vec<SubMsg<ProposalType>> = to_add
+    let to_add: Vec<SubMsg<NeutronMsg>> = to_add
         .into_iter()
         .map(|info| info.into_wasm_msg(env.contract.address.clone()))
         .map(|wasm| SubMsg::reply_on_success(wasm, PROPOSAL_MODULE_REPLY_ID))
@@ -294,7 +316,7 @@ pub fn execute_set_item(
     sender: Addr,
     key: String,
     value: String,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -311,7 +333,7 @@ pub fn execute_remove_item(
     env: Env,
     sender: Addr,
     key: String,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<NeutronMsg>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -641,7 +663,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, C
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<ProposalType>, ContractError> {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg>, ContractError> {
     match msg.id {
         PROPOSAL_MODULE_REPLY_ID => {
             let res: cw_utils::MsgInstantiateContractResponse = parse_reply_instantiate_data(msg)?;

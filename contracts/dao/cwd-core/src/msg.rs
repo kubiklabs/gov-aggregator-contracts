@@ -39,7 +39,7 @@ pub struct InstantiateMsg {
 
     /// Instantiate information for the core contract's voting
     /// power module.
-    pub voting_registry_module_instantiate_info: ModuleInstantiateInfo,
+    // pub voting_registry_module_instantiate_info: ModuleInstantiateInfo,
     
     /// Instantiate information for the ica helper contract
     pub ica_helper_module_instantiate_info: ModuleInstantiateInfo,
@@ -59,7 +59,6 @@ pub struct InstantiateMsg {
     /// Contains list of chain which this DAO will support and there 
     /// respective values
     pub chain_list: Vec<ChainStakeInfo>,
-    pub icq_helper_addr: Addr,
     pub contract_registry: Addr,
     /// Implements the DAO Star standard: https://daostar.one/EIP
     pub dao_uri: Option<String>,
