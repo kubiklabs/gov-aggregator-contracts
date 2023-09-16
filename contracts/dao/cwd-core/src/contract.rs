@@ -16,7 +16,7 @@ use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, 
 use crate::query::{DumpStateResponse, GetItemResponse, PauseInfoResponse};
 use crate::state::{
     Config, ProposalModule, ProposalModuleStatus, ACTIVE_PROPOSAL_MODULE_COUNT, CONFIG, ITEMS,
-    PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER, ICQ_HELPER,
+    PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER, ICQ_HELPER
 };
 
 pub(crate) const CONTRACT_NAME: &str = "crates.io:cwd-subdao-core";
@@ -81,8 +81,8 @@ pub fn instantiate(
     // Save the contracts in CHAIN_STAKE
     let mut messages:Vec<CosmosMsg<NeutronMsg>> = vec![];
     CONTRACT_REGISTRY.save(deps.storage, &msg.contract_registry)?;
-    // let helper_addr = msg.icq_helper_addr;
 
+    // CHAINS.save(deps.storage,&msg.chain_list)?;
     
     for chain in &(msg.chain_list) {
         if CHAIN_STAKE.has(deps.storage, chain.chain_id.clone()) {
@@ -95,9 +95,11 @@ pub fn instantiate(
             contract_addr: msg.contract_registry.to_string(),
             msg: to_binary(&RegistryQueryMsg::ConnectionId { remote_chain: chain.chain_id.clone() })?
         }))?;
+        // By this time ica contract should have instantiated
+        let ica_contract = ICA_HELPER.load(deps.storage)?;
         messages.push(
             CosmosMsg::Wasm(WasmMsg::Execute { 
-                contract_addr: helper_addr.clone().into_string(), 
+                contract_addr: ica_contract.clone().into_string(), 
                 msg: to_binary(&IcaHelperMsg::Register {connection_id:connection_res.connection_id,interchain_account_id: chain.chain_id.clone()})?, 
                 funds: vec![] }
             )
@@ -124,7 +126,7 @@ pub fn execute(
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     // No actions can be performed while the DAO is paused.
     if let Some(expiration) = PAUSED.may_load(deps.storage)? {
         if !expiration.is_expired(&env.block) {
@@ -159,7 +161,7 @@ pub fn execute_pause(
     env: Env,
     sender: Addr,
     pause_duration: Duration,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if sender != env.contract.address {
         return Err(ContractError::Unauthorized {});
     }
@@ -178,7 +180,7 @@ pub fn execute_proposal_hook(
     deps: Deps,
     sender: Addr,
     msgs: Vec<CosmosMsg<ProposalType>>,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     let module = PROPOSAL_MODULES
         .may_load(deps.storage, sender.clone())?
         .ok_or(ContractError::Unauthorized {})?;
@@ -187,40 +189,40 @@ pub fn execute_proposal_hook(
     if module.status != ProposalModuleStatus::Enabled {
         return Err(ContractError::ModuleDisabledCannotExecute { address: sender });
     }
-    let messages = Vec::new();
-    for msg in msgs {
-            let message = match msg {
-                cosmwasm_std::CosmosMsg::Custom(ProposalType::BringRemoteFund { demand_info }) => create_ica_proposal_message_on_remote_chain_for_fund(demand_info),
-                cosmwasm_std::CosmosMsg::Custom(ProposalType::AskFund { demand_info }) => disburse_fund(),
-                _ => return Err(ContractError::ProposalMsgNotFound {})
-            };
-            messages.push(message);
-    }
+    // let messages = Vec::new();
+    // for msg in msgs {
+    //         let message = match msg {
+    //             cosmwasm_std::CosmosMsg::Custom(ProposalType::BringRemoteFund { demand_info }) => create_ica_proposal_message_on_remote_chain_for_fund(demand_info),
+    //             cosmwasm_std::CosmosMsg::Custom(ProposalType::AskFund { demand_info }) => disburse_fund(),
+    //             _ => return Err(ContractError::ProposalMsgNotFound {})
+    //         };
+    //         messages.push(message);
+    // }
 
     Ok(Response::default()
         .add_attribute("action", "execute_proposal_hook")
         .add_messages(msgs))
 }
 
-fn create_ica_proposal_message_on_remote_chain_for_fund(
-    // deps: DepsMut,
-    // env: Env,
-    // sender: Addr,
-    demand_info: Vec<FundInfo>
-) -> NeutronMsg {
-    // create msg for registering proposal on ica contract
-    for demands in demand_info {
+// fn create_ica_proposal_message_on_remote_chain_for_fund(
+//     // deps: DepsMut,
+//     // env: Env,
+//     // sender: Addr,
+//     demand_info: Vec<FundInfo>
+// ) -> NeutronMsg {
+//     // create msg for registering proposal on ica contract
+//     for demands in demand_info {
 
 
-    }
+//     }
     
-}
+// }
 pub fn execute_update_config(
     deps: DepsMut,
     env: Env,
     sender: Addr,
     config: Config,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -246,7 +248,7 @@ pub fn execute_update_voting_module(
     env: Env,
     sender: Addr,
     module: ModuleInstantiateInfo,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -265,7 +267,7 @@ pub fn execute_update_proposal_modules(
     sender: Addr,
     to_add: Vec<ModuleInstantiateInfo>,
     to_disable: Vec<String>,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -307,7 +309,8 @@ pub fn execute_update_proposal_modules(
 
     Ok(Response::default()
         .add_attribute("action", "execute_update_proposal_modules")
-        .add_submessages(to_add))
+        // .add_submessages(to_add)
+    )
 }
 
 pub fn execute_set_item(
@@ -316,7 +319,7 @@ pub fn execute_set_item(
     sender: Addr,
     key: String,
     value: String,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -333,7 +336,7 @@ pub fn execute_remove_item(
     env: Env,
     sender: Addr,
     key: String,
-) -> Result<Response<NeutronMsg>, ContractError> {
+) -> Result<Response<ProposalType>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
