@@ -53,5 +53,5 @@ cw4 = "1.1.0"
 cw4-group = "1.1.0"
 cwd-testing = { path = "../../../../packages/cwd-testing" }
 neutron-voting-registry = { path = "../../voting/neutron-voting-registry" }
-neutron-vault = { path = "../../voting/neutron-vault" }
+#neutron-vault = { path = "../../voting/neutron-vault" }
 rand = "0.8.5"

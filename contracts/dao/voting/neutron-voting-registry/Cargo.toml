@@ -26,7 +26,7 @@ cw-utils = {version = "1.0.1"}
 cw2 = "1.1.0"
 cwd-interface = {path = "../../../../packages/cwd-interface"}
 cwd-macros = {path = "../../../../packages/cwd-macros"}
-neutron-vault = {path = "../neutron-vault"}
+#neutron-vault = {path = "../neutron-vault"}
 schemars = "0.8.8"
 serde = {version = "1.0.175", default-features = false, features = ["derive"]}
 thiserror = {version = "1.0"}

@@ -6,6 +6,9 @@ use cwd_interface::voting::{
 use cwd_macros::{info_query, voting_query};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use cwd_macros::voting_vault_query;
+use cwd_interface::voting::BondingStatusResponse;
+use cosmwasm_std::Uint128;
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
 pub struct InstantiateMsg {
@@ -23,6 +26,15 @@ pub enum ExecuteMsg {
     UpdateConfig { owner: String },
 }
 
+#[voting_query]
+#[voting_vault_query]
+#[info_query]
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum VaultQueryMsg {
+    #[returns(crate::state::Config)]
+    Config {},
+}
 #[voting_query]
 #[info_query]
 #[cw_serde]

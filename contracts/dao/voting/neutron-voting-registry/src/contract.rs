@@ -5,10 +5,10 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 // use cw_controllers::ClaimsResponse;
 use cwd_interface::voting::{self, TotalPowerAtHeightResponse, VotingPowerAtHeightResponse};
-use neutron_vault::msg::QueryMsg as VaultQueryMsg;
+// use neutron_vault::msg::QueryMsg as VaultQueryMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, VotingVault};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, VotingVault, VaultQueryMsg};
 use crate::state::{Config, CONFIG, DAO};
 
 pub(crate) const CONTRACT_NAME: &str = "crates.io:neutron-voting-registry";
