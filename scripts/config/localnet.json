@@ -1,0 +1,15 @@
+{
+  "relayers": {
+    "gaia": {
+      "chain_id": "test-2",
+      "denom": "uatom",
+      "connection_id": "connection-0",
+      "source_channel_id": "",
+      "destination_channel_id": ""
+    }
+  },
+  "host_chain": {
+    "chain_id": "test-1",
+    "denom": "untrn"
+  }
+}

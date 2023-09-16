@@ -1,0 +1,16 @@
+{
+  "relayers": {
+    "osmosis": {
+      "connection_id": "",
+      "source_channel_id": "",
+      "destination_channel_id": "",
+      "destination_denom": ""
+    },
+    "gaia": {
+      "connection_id": "",
+      "source_channel_id": "",
+      "destination_channel_id": "",
+      "destination_denom": ""
+    }
+  }
+}
