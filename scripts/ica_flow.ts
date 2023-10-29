@@ -16,8 +16,8 @@ async function run () {
   const remoteDenom = "uatom";  // cosmos hub fee token
   const contract_owner = await getAccountByName("account_0");
 
-  const connectionId = "connection-4";
-  const interchainAccountName = "test_1";
+  const connectionId = networkConfig.relayers.gaia.connection_id;
+  const interchainAccountName = "remote_account_1";
   const remoteValidatorOne = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
 
   console.log("admin account fetched successfully");
@@ -46,23 +46,23 @@ async function run () {
 
   console.log("All contract instance created successfully");
 
-  // Register account on remote chain
-  const register_res = await ica_helper.register(
-    {
-      account: contract_owner,
-      customFees: {
-        amount: [{ amount: "75000", denom: nativeDenom }],
-        gas: "300000",
-      },
-    },
-    {
-      connectionId: connectionId,
-      interchainAccountId: interchainAccountName,
-    }
-  );
-  console.log(chalk.cyan("Response: "), register_res);
+  // // Register account on remote chain
+  // const register_res = await ica_helper.register(
+  //   {
+  //     account: contract_owner,
+  //     customFees: {
+  //       amount: [{ amount: "75000", denom: nativeDenom }],
+  //       gas: "300000",
+  //     },
+  //   },
+  //   {
+  //     connectionId: connectionId,
+  //     interchainAccountId: interchainAccountName,
+  //   }
+  // );
+  // console.log(chalk.cyan("Response: "), register_res);
 
-  await sleep(10);  // wait for addr to be created
+  // await sleep(10);  // wait for addr to be created
 
   // Query interchain address
   const accountInfo = await ica_helper.interchainAccountAddress({

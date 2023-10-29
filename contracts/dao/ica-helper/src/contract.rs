@@ -3,16 +3,17 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::{
     MsgDelegate, MsgDelegateResponse, MsgUndelegate, MsgUndelegateResponse,
 };
 use cosmos_sdk_proto::cosmos::gov::v1beta1::{
-    MsgSubmitProposal, MsgSubmitProposalResponse, MsgDeposit, MsgDepositResponse,
+    MsgSubmitProposal, MsgSubmitProposalResponse,
 };
 use cosmos_sdk_proto::cosmos::distribution::v1beta1::CommunityPoolSpendProposal;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, CosmosMsg, CustomQuery, Deps, DepsMut,
+    coin, to_binary, Binary, CosmosMsg, CustomQuery, Deps, DepsMut,
     Env, MessageInfo, Reply, Response, StdError, StdResult, SubMsg,
 };
 use cw2::set_contract_version;
+use neutron_sdk::sudo::msg::RequestPacketTimeoutHeight;
 use prost::Message;
 use prost_types::Any;
 use schemars::JsonSchema;
@@ -41,6 +42,7 @@ use crate::storage::{
 };
 
 // Default timeout for SubmitTX is two weeks
+const DEFAULT_TIMEOUT_HEIGHT: u64 = 10000000;
 const DEFAULT_TIMEOUT_SECONDS: u64 = 60 * 60 * 24 * 7 * 2;
 const FEE_DENOM: &str = "untrn";
 
@@ -97,36 +99,21 @@ pub fn execute(
             denom,
             timeout,
         ),
-        // ExecuteMsg::Delegate {
-        //     validator,
-        //     interchain_account_id,
-        //     amount,
-        //     denom,
-        //     timeout,
-        // } => execute_delegate(
-        //     deps,
-        //     env,
-        //     interchain_account_id,
-        //     validator,
-        //     amount,
-        //     denom,
-        //     timeout,
-        // ),
-        // ExecuteMsg::Undelegate {
-        //     validator,
-        //     interchain_account_id,
-        //     amount,
-        //     denom,
-        //     timeout,
-        // } => execute_undelegate(
-        //     deps,
-        //     env,
-        //     interchain_account_id,
-        //     validator,
-        //     amount,
-        //     denom,
-        //     timeout,
-        // ),
+        ExecuteMsg::SendAsset {
+            channel,
+            interchain_account_id,
+            amount,
+            denom,
+            timeout,
+        } => execute_send_asset(
+            deps,
+            env,
+            channel,
+            interchain_account_id,
+            amount,
+            denom,
+            timeout,
+        ),
     }
 }
 
@@ -244,15 +231,15 @@ fn execute_propose_funds(
         amount: [
             Coin {
                 denom: denom.clone(),
-                amount: "300000000".to_owned(),
+                amount: amount.to_string(),
             }
         ].to_vec(),
     };
-    let mut content_buf = Vec::new();
-    content_buf.reserve(content_msg.encoded_len());
+    // let mut content_buf = Vec::new();
+    // content_buf.reserve(content_msg.encoded_len());
     let content_msg = Any {
         type_url: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal".to_string(),
-        value: Binary::from(content_buf).to_vec(),
+        value: content_msg.encode_to_vec(),
     };
 
     let create_proposal_msg = MsgSubmitProposal {
@@ -260,7 +247,7 @@ fn execute_propose_funds(
         initial_deposit: [
             Coin {
                 denom: denom.clone(),
-                amount: "10000000".to_owned(),
+                amount: "10000000".to_owned(),  // TODO: move this to txn args
             }
         ].to_vec(),
         proposer: proposer.clone(),
@@ -306,123 +293,54 @@ fn execute_propose_funds(
     Ok(Response::default().add_submessages(vec![submsg]))
 }
 
-// fn execute_delegate(
-//     mut deps: DepsMut<NeutronQuery>,
-//     env: Env,
-//     interchain_account_id: String,
-//     validator: String,
-//     amount: u128,
-//     denom: String,
-//     timeout: Option<u64>,
-// ) -> NeutronResult<Response<NeutronMsg>> {
-//     // contract must pay for relaying of acknowledgements
-//     // See more info here: https://docs.neutron.org/neutron/feerefunder/overview
-//     let fee = min_ntrn_ibc_fee(query_min_ibc_fee(deps.as_ref())?.min_fee);
-//     let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
-//     let delegate_msg = MsgDelegate {
-//         delegator_address: delegator,
-//         validator_address: validator,
-//         amount: Some(Coin {
-//             denom,
-//             amount: amount.to_string(),
-//         }),
-//     };
-//     let mut buf = Vec::new();
-//     buf.reserve(delegate_msg.encoded_len());
+fn execute_send_asset(
+    mut deps: DepsMut<NeutronQuery>,
+    env: Env,
+    channel: String,
+    interchain_account_id: String,
+    amount: u128,
+    denom: String,
+    timeout: Option<u64>,
+) -> NeutronResult<Response<NeutronMsg>> {
+    // contract must pay for relaying of acknowledgements
+    // See more info here: https://docs.neutron.org/neutron/feerefunder/overview
+    let fee = min_ntrn_ibc_fee(query_min_ibc_fee(deps.as_ref())?.min_fee);
 
-//     if let Err(e) = delegate_msg.encode(&mut buf) {
-//         return Err(NeutronError::Std(StdError::generic_err(format!(
-//             "Encode error: {}",
-//             e
-//         ))));
-//     }
+    let transfer_msg = NeutronMsg::IbcTransfer {
+        source_port: "transfer".to_string(),
+        source_channel: channel.clone(),
+        sender: env.contract.address.to_string(),
+        receiver: interchain_account_id.clone(),
+        token: coin(amount, denom.clone()),
+        timeout_height: RequestPacketTimeoutHeight {
+            revision_number: Some(2),
+            revision_height: timeout.or(Some(DEFAULT_TIMEOUT_HEIGHT)),
+        },
+        timeout_timestamp: 0,
+        memo: "".to_string(),
+        fee: fee.clone(),
+    };
 
-//     let any_msg = ProtobufAny {
-//         type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
-//         value: Binary::from(buf),
-//     };
+    // prepare first transfer message with payload of Type1
+    let transfer_submsg = msg_with_sudo_callback(
+        deps.branch(),
+        transfer_msg,
+        SudoPayload {   // TODO: check if port_id here is correct
+            port_id: get_port_id(
+                env.contract.address.as_str(),
+                &interchain_account_id,
+            ),
+            message: "message".to_string(),
+        },
+    )?;
+    deps.as_ref().api.debug(format!(
+        "WASMDEBUG: execute_send: sent submsg1: {:?}",
+        transfer_submsg,
+    ).as_str());
 
-//     let cosmos_msg = NeutronMsg::submit_tx(
-//         connection_id,
-//         interchain_account_id.clone(),
-//         vec![any_msg],
-//         "".to_string(),
-//         timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
-//         fee,
-//     );
-
-//     // We use a submessage here because we need the process message reply to save
-//     // the outgoing IBC packet identifier for later.
-//     let submsg = msg_with_sudo_callback(
-//         deps.branch(),
-//         cosmos_msg,
-//         SudoPayload {
-//             port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-//             message: "message".to_string(),
-//         },
-//     )?;
-
-//     Ok(Response::default().add_submessages(vec![submsg]))
-// }
-
-// fn execute_undelegate(
-//     mut deps: DepsMut<NeutronQuery>,
-//     env: Env,
-//     interchain_account_id: String,
-//     validator: String,
-//     amount: u128,
-//     denom: String,
-//     timeout: Option<u64>,
-// ) -> NeutronResult<Response<NeutronMsg>> {
-//     // contract must pay for relaying of acknowledgements
-//     // See more info here: https://docs.neutron.org/neutron/feerefunder/overview
-//     let fee = min_ntrn_ibc_fee(query_min_ibc_fee(deps.as_ref())?.min_fee);
-//     let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
-//     let delegate_msg = MsgUndelegate {
-//         delegator_address: delegator,
-//         validator_address: validator,
-//         amount: Some(Coin {
-//             denom,
-//             amount: amount.to_string(),
-//         }),
-//     };
-//     let mut buf = Vec::new();
-//     buf.reserve(delegate_msg.encoded_len());
-
-//     if let Err(e) = delegate_msg.encode(&mut buf) {
-//         return Err(NeutronError::Std(StdError::generic_err(format!(
-//             "Encode error: {}",
-//             e
-//         ))));
-//     }
-
-//     let any_msg = ProtobufAny {
-//         type_url: "/cosmos.staking.v1beta1.MsgUndelegate".to_string(),
-//         value: Binary::from(buf),
-//     };
-
-//     let cosmos_msg = NeutronMsg::submit_tx(
-//         connection_id,
-//         interchain_account_id.clone(),
-//         vec![any_msg],
-//         "".to_string(),
-//         timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
-//         fee,
-//     );
-
-//     // We use a submessage here because we need the process message reply to save
-//     // the outgoing IBC packet identifier for later.
-//     let submsg = msg_with_sudo_callback(
-//         deps.branch(),
-//         cosmos_msg,
-//         SudoPayload {
-//             port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-//             message: "message".to_string(),
-//         },
-//     )?;
-
-//     Ok(Response::default().add_submessages(vec![submsg]))
-// }
+    Ok(Response::default()
+        .add_submessages(vec![transfer_submsg]))
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
@@ -458,7 +376,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     // deps.api.debug("WASMDEBUG: migrate");
     Ok(Response::default())
 }
@@ -569,7 +487,7 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> StdResu
                 });
                 deps.api
                     .debug(format!("Undelegation completion time: {:?}", completion_time).as_str());
-            }
+            }   // TODO: remove delegate/undelegate response, add create proposal response
             "/cosmos.staking.v1beta1.MsgDelegate" => {
                 // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
                 // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE

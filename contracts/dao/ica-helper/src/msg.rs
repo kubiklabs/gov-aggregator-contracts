@@ -31,16 +31,34 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    /// Register a remote account
     Register {
         connection_id: String,
         interchain_account_id: String,
     },
+    /// Create a community spend proposal using remote address
+    /// on remote chain
     ProposeFunds {
         interchain_account_id: String,
         amount: u128,
         denom: String,
         timeout: Option<u64>,
     },
+    /// Send an asset over IBC to remote account
+    SendAsset {
+        channel: String,
+        interchain_account_id: String,
+        amount: u128,
+        denom: String,
+        timeout: Option<u64>,
+    },
+    // /// Withdraw an asset over IBC from remote account
+    // WithdrawAsset {
+    //     interchain_account_id: String,
+    //     amount: u128,
+    //     denom: String,
+    //     timeout: Option<u64>,
+    // },
     // Delegate {
     //     interchain_account_id: String,
     //     validator: String,

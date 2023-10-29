@@ -22,7 +22,7 @@ async function run () {
     wallet,
   );
 
-  const interchainAccount = "cosmos15uwjehgurfsz3j6tqrxjrk4m26t57pkn2mdk2mtxcfaplw8v6czsyl20wr";
+  const interchainAccount = "cosmos1j0vfcrqha2jz0uk3te7z0y3s72vrexmulutrg4f04ypr7e7sk4rs3suxr2";
   const remoteValidatorOne = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
 
   console.log("admin account fetched successfully");
