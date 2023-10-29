@@ -16,11 +16,12 @@ pub struct DumpStateResponse {
     pub pause_info: PauseInfoResponse,
     /// The governance contract's version.
     pub version: ContractVersion,
-    /// The governance modules associated with the governance
-    /// contract.
-    pub proposal_modules: Vec<ProposalModule>,
+    /// The governance modules associated with the governance contract.
+    // pub proposal_modules: Vec<ProposalModule>,
     /// The voting module associated with the governance contract.
-    pub voting_module: Addr,
+    // pub voting_module: Addr,
+    /// The ICA helper module associated with the governance contract.
+    pub ica_helper: Addr,
     /// The number of active proposal modules.
     pub active_proposal_module_count: u32,
     /// The total number of proposal modules.

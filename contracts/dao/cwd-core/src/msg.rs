@@ -9,7 +9,7 @@ use cwd_macros::{info_query, voting_query};
 // use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cw_storage_plus::{Map};
+// use cw_storage_plus::Map;
 // use crate::query::SubDao;
 use crate::state::{Config, ChainStakeInfo};
 
@@ -48,7 +48,7 @@ pub struct InstantiateMsg {
     /// proposal modules.
     // NOTE: the pre-propose-base package depends on it being the case
     // that the core module instantiates its proposal module.
-    pub proposal_modules_instantiate_info: Vec<ModuleInstantiateInfo>,
+    // pub proposal_modules_instantiate_info: Vec<ModuleInstantiateInfo>,
 
     /// Initial information for arbitrary contract addresses to be
     /// added to the items map. The key is the name of the item in the
@@ -69,10 +69,11 @@ pub struct ConnectionResponse{
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub enum RegistryQueryMsg{
-    ConnectionId {
+pub enum RegistryQueryMsg {
+    Config {},
+    ConnectionIds {
         remote_chain: String
-    }
+    },
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ChainStakeVotingPowerResponse {

@@ -988,7 +988,7 @@
                     ]
                   },
                   "channel_id": {
-                    "description": "exisiting channel to send the tokens over",
+                    "description": "existing channel to send the tokens over",
                     "type": "string"
                   },
                   "timeout": {
@@ -1106,7 +1106,7 @@
             "minimum": 0.0
           },
           "revision": {
-            "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+            "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
@@ -1531,7 +1531,7 @@
                     }
                   },
                   "label": {
-                    "description": "A human-readbale label for the contract",
+                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                     "type": "string"
                   },
                   "msg": {
@@ -2775,7 +2775,7 @@
                       ]
                     },
                     "channel_id": {
-                      "description": "exisiting channel to send the tokens over",
+                      "description": "existing channel to send the tokens over",
                       "type": "string"
                     },
                     "timeout": {
@@ -2893,7 +2893,7 @@
               "minimum": 0.0
             },
             "revision": {
-              "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+              "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -3388,7 +3388,7 @@
                       }
                     },
                     "label": {
-                      "description": "A human-readbale label for the contract",
+                      "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                       "type": "string"
                     },
                     "msg": {
@@ -4001,7 +4001,7 @@
                       ]
                     },
                     "channel_id": {
-                      "description": "exisiting channel to send the tokens over",
+                      "description": "existing channel to send the tokens over",
                       "type": "string"
                     },
                     "timeout": {
@@ -4119,7 +4119,7 @@
               "minimum": 0.0
             },
             "revision": {
-              "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+              "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -4595,7 +4595,7 @@
                       }
                     },
                     "label": {
-                      "description": "A human-readbale label for the contract",
+                      "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                       "type": "string"
                     },
                     "msg": {
@@ -5196,7 +5196,7 @@
                       ]
                     },
                     "channel_id": {
-                      "description": "exisiting channel to send the tokens over",
+                      "description": "existing channel to send the tokens over",
                       "type": "string"
                     },
                     "timeout": {
@@ -5314,7 +5314,7 @@
               "minimum": 0.0
             },
             "revision": {
-              "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+              "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -5809,7 +5809,7 @@
                       }
                     },
                     "label": {
-                      "description": "A human-readbale label for the contract",
+                      "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                       "type": "string"
                     },
                     "msg": {

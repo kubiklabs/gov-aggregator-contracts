@@ -1,7 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    Env, MessageInfo, Reply, Response, StdError,
+    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut,
     StdResult, SubMsg, WasmMsg, WasmQuery, QueryRequest, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
@@ -12,11 +13,18 @@ use cwd_interface::{voting, ModuleInstantiateInfo};
 use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg, IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType, ChainStake, IcqQueryMsg, FundInfo};
-use crate::query::{DumpStateResponse, GetItemResponse, PauseInfoResponse};
+use crate::msg::{
+    ChainStake, IcqQueryMsg, FundInfo,
+    ExecuteMsg, InitialItem, InstantiateMsg, MigrateMsg, QueryMsg,
+    IcaHelperMsg, RegistryQueryMsg, ConnectionResponse, ProposalType,
+};
+use crate::query::{
+    DumpStateResponse, GetItemResponse, PauseInfoResponse,
+};
 use crate::state::{
-    Config, ProposalModule, ProposalModuleStatus, ACTIVE_PROPOSAL_MODULE_COUNT, CONFIG, ITEMS,
-    PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER, ICQ_HELPER
+    CHAIN_STAKE, CONTRACT_REGISTRY, ICA_HELPER, ICQ_HELPER, Config,
+    ProposalModule, ProposalModuleStatus, ACTIVE_PROPOSAL_MODULE_COUNT, CONFIG,
+    ITEMS, PAUSED, PROPOSAL_MODULES, TOTAL_PROPOSAL_MODULE_COUNT, VOTING_REGISTRY_MODULE, ChainStakeInfo,
 };
 
 pub(crate) const CONTRACT_NAME: &str = "crates.io:cwd-subdao-core";
@@ -37,7 +45,7 @@ pub fn instantiate(
 ) -> Result<Response<NeutronMsg>, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let config = Config {
+    let config: Config = Config {
         name: msg.name,
         description: msg.description,
         dao_uri: msg.dao_uri,
@@ -51,61 +59,47 @@ pub fn instantiate(
     // let vote_module_msg: SubMsg<NeutronMsg> =
     //     SubMsg::reply_on_success(vote_module_msg, VOTE_MODULE_INSTANTIATE_REPLY_ID);
 
-    // Instantiate ICA helper contract which will take care of everything
-    let ica_module_msg = msg
-        .ica_helper_module_instantiate_info
-        .into_wasm_msg(env.contract.address.clone());
-    let ica_module_msg: SubMsg<NeutronMsg> =
-        SubMsg::reply_on_success(ica_module_msg, ICA_HELPER_INSTANTIATE_REPLY_ID);
+    // Instantiate ICA helper contract which will handle remote accounts
+    let ica_module_msg: SubMsg<NeutronMsg> = SubMsg::reply_on_success(
+        msg.ica_helper_module_instantiate_info
+            .into_wasm_msg(env.contract.address.clone()),
+        ICA_HELPER_INSTANTIATE_REPLY_ID,
+    );
 
-    let icq_module_msg = msg
-        .icq_helper_module_instantiate_info
-        .into_wasm_msg(env.contract.address.clone());
+    // Instantiate ICQ helper contract which will query remote chains
     let icq_module_msg: SubMsg<NeutronMsg> =
-        SubMsg::reply_on_success(icq_module_msg, ICQ_HELPER_INSTANTIATE_REPLY_ID);
+        SubMsg::reply_on_success(
+            msg.icq_helper_module_instantiate_info
+            .into_wasm_msg(env.contract.address.clone()),
+        ICQ_HELPER_INSTANTIATE_REPLY_ID,
+    );
 
-    let proposal_module_msgs: Vec<SubMsg<NeutronMsg>> = msg
-        .proposal_modules_instantiate_info
-        .into_iter()
-        .map(|info| info.into_wasm_msg(env.contract.address.clone()))
-        .map(|wasm| SubMsg::reply_on_success(wasm, PROPOSAL_MODULE_REPLY_ID))
-        .collect();
-    if proposal_module_msgs.is_empty() {
-        return Err(ContractError::NoActiveProposalModules {});
-    }
+    // let proposal_module_msgs: Vec<SubMsg<NeutronMsg>> = msg
+    //     .proposal_modules_instantiate_info
+    //     .into_iter()
+    //     .map(|info| info.into_wasm_msg(env.contract.address.clone()))
+    //     .map(|wasm| SubMsg::reply_on_success(wasm, PROPOSAL_MODULE_REPLY_ID))
+    //     .collect();
+    // if proposal_module_msgs.is_empty() {
+    //     return Err(ContractError::NoActiveProposalModules {});
+    // }
 
     for InitialItem { key, value } in msg.initial_items.unwrap_or_default() {
         ITEMS.save(deps.storage, key, &value)?;
     }
     // First check the list is in contract registry
     // Save the contracts in CHAIN_STAKE
-    let mut messages:Vec<CosmosMsg<NeutronMsg>> = vec![];
     CONTRACT_REGISTRY.save(deps.storage, &msg.contract_registry)?;
 
-    // CHAINS.save(deps.storage,&msg.chain_list)?;
-    
+    // CHAINS.save(deps.storage, &msg.chain_list)?;
+
     for chain in &(msg.chain_list) {
         if CHAIN_STAKE.has(deps.storage, chain.chain_id.clone()) {
             return Err(ContractError::ChainListRepeat {})
         }
-        CHAIN_STAKE.save(deps.storage, chain.chain_id.clone(), &chain.stake)?;
-        // Fetch connection id from contract registry
-        // query contract registry and get the connection id from that registry
-        let connection_res: ConnectionResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: msg.contract_registry.to_string(),
-            msg: to_binary(&RegistryQueryMsg::ConnectionId { remote_chain: chain.chain_id.clone() })?
-        }))?;
-        // By this time ica contract should have instantiated
-        let ica_contract = ICA_HELPER.load(deps.storage)?;
-        messages.push(
-            CosmosMsg::Wasm(WasmMsg::Execute { 
-                contract_addr: ica_contract.clone().into_string(), 
-                msg: to_binary(&IcaHelperMsg::Register {connection_id:connection_res.connection_id,interchain_account_id: chain.chain_id.clone()})?, 
-                funds: vec![] }
-            )
-        );
+        CHAIN_STAKE.save(deps.storage, chain.chain_id.clone(), &chain)?;
+        // Do an ICA account register for each chain in ICA instantiate reply
     }
-    // Create interchain account for all the chains and save them in the contract
 
     TOTAL_PROPOSAL_MODULE_COUNT.save(deps.storage, &0)?;
     ACTIVE_PROPOSAL_MODULE_COUNT.save(deps.storage, &0)?;
@@ -114,10 +108,9 @@ pub fn instantiate(
         .add_attribute("action", "instantiate")
         .add_attribute("sender", info.sender)
         // .add_submessage(vote_module_msg)
-        .add_submessage(ica_module_msg)
-        .add_submessage(icq_module_msg)
-        .add_submessages(proposal_module_msgs)
-        .add_messages(messages))
+        // .add_submessage(icq_module_msg)
+        // .add_submessages(proposal_module_msgs)
+        .add_submessage(ica_module_msg))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -497,11 +490,13 @@ pub fn query_paused(deps: Deps, env: Env) -> StdResult<Binary> {
 
 pub fn query_dump_state(deps: Deps, env: Env) -> StdResult<Binary> {
     let config = CONFIG.load(deps.storage)?;
-    let voting_registry_module = VOTING_REGISTRY_MODULE.load(deps.storage)?;
-    let proposal_modules = PROPOSAL_MODULES
-        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-        .map(|kv| Ok(kv?.1))
-        .collect::<StdResult<Vec<ProposalModule>>>()?;
+    
+    let ica_contract = ICA_HELPER.load(deps.storage)?;
+    // let voting_registry_module = VOTING_REGISTRY_MODULE.load(deps.storage)?;
+    // let proposal_modules = PROPOSAL_MODULES
+    //     .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+    //     .map(|kv| Ok(kv?.1))
+    //     .collect::<StdResult<Vec<ProposalModule>>>()?;
     let pause_info = get_pause_info(deps, env)?;
     let version = get_contract_version(deps.storage)?;
     let active_proposal_module_count = ACTIVE_PROPOSAL_MODULE_COUNT.load(deps.storage)?;
@@ -510,8 +505,9 @@ pub fn query_dump_state(deps: Deps, env: Env) -> StdResult<Binary> {
         config,
         version,
         pause_info,
-        proposal_modules,
-        voting_module: voting_registry_module,
+        // proposal_modules,
+        // voting_module: voting_registry_module,
+        ica_helper: ica_contract,
         active_proposal_module_count,
         total_proposal_module_count,
     })
@@ -547,16 +543,15 @@ pub fn query_chains_stake_voting_power(
 pub fn query_voting_power_and_aggregate(
     deps: Deps,
     chains: Vec<String>,
-    address: String
+    _address: String
 ) -> StdResult<Binary> {
-
     ////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////
     ////////QUERY ALL VOTING POWER FROM ICQ CONTRACT AND CONVERT IT INTO ONE NET POWER////////
     ////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////
-    let icq_helper = ICQ_HELPER.load(deps.storage)?;
+    let icq_helper: Addr= ICQ_HELPER.load(deps.storage)?;
     let power_per_chain: Vec<ChainStake> = deps.querier.query_wasm_smart(
         icq_helper,
         &IcqQueryMsg::GetChainDelegations { chains },
@@ -575,7 +570,8 @@ fn calculate_net_voting_power(deps:Deps,chains: Vec<ChainStake>) -> Uint128 {
             continue;
         }
         let chain_val = CHAIN_STAKE.load(deps.storage, chain.clone().chain_id).unwrap();
-        total_power = total_power.checked_div(Uint128::new(100)).unwrap().checked_mul(Uint128::new(chain_val.into())).unwrap();
+        total_power = total_power.checked_div(Uint128::new(100)).unwrap()
+            .checked_mul(Uint128::new(chain_val.stake.into())).unwrap();
     }
 
     total_power
@@ -689,7 +685,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg
 
             Ok(Response::default().add_attribute("prop_module".to_string(), res.contract_address))
         }
-
         VOTE_MODULE_INSTANTIATE_REPLY_ID => {
             let res = parse_reply_instantiate_data(msg)?;
             let voting_registry_addr = deps.api.addr_validate(&res.contract_address)?;
@@ -706,19 +701,56 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg
             Ok(Response::default().add_attribute("voting_regsitry_module", voting_registry_addr))
         }
         ICA_HELPER_INSTANTIATE_REPLY_ID => {
+            let mut messages:Vec<CosmosMsg<NeutronMsg>> = vec![];
+
             let res = parse_reply_instantiate_data(msg)?;
             let ica_helper_address = deps.api.addr_validate(&res.contract_address)?;
             let current = ICA_HELPER.may_load(deps.storage)?;
 
+            // deps.api.debug(format!(
+            //     "WASMDEBUG: ica_helper_address: {:?}",
+            //     ica_helper_address
+            // ).as_str());
+
             // Make sure a bug in instantiation isn't causing us to
-            // make more than one voting module.
+            // make more than one ICA helper module.
             if current.is_some() {
                 return Err(ContractError::MultipleIcaContract {});
             }
 
             ICA_HELPER.save(deps.storage, &ica_helper_address)?;
 
-            Ok(Response::default().add_attribute("ica_helper_address", ica_helper_address))
+            // By this time ICA contract should have instantiated
+            let ica_contract: Addr = ICA_HELPER.load(deps.storage)?;
+            // deps.api.debug(format!(
+            //     "WASMDEBUG: ica_contract: {:?}",
+            //     ica_contract
+            // ).as_str());
+            let chains: StdResult<Vec<(std::string::String, ChainStakeInfo)>> = CHAIN_STAKE.range(
+                deps.storage, None, None, cosmwasm_std::Order::Ascending,
+            ).collect();
+            for (_, chain_details) in chains?.iter() {
+                // deps.api.debug(format!(
+                //     "WASMDEBUG: chain_details: {:?} {:?}",
+                //     chain_details.chain_id,
+                //     chain_details.connection_id,
+                // ).as_str());
+                // Register ICA account on each remote chain
+                messages.push(
+                    CosmosMsg::Wasm(WasmMsg::Execute { 
+                        contract_addr: ica_contract.clone().into_string(), 
+                        msg: to_binary(&IcaHelperMsg::Register {
+                            connection_id: chain_details.connection_id.clone(),
+                            interchain_account_id: chain_details.chain_id.clone(),
+                        })?,
+                        funds: vec![],
+                    })
+                );
+            }
+
+            Ok(Response::default()
+                    .add_attribute("ica_helper_address", ica_helper_address)
+                    .add_messages(messages))
         }
         ICQ_HELPER_INSTANTIATE_REPLY_ID => {
             let res = parse_reply_instantiate_data(msg)?;

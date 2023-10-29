@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { getAccountByName } from "@arufa/wasmkit";
+import { getAccountByName } from "@kubiklabs/wasmkit";
 
 import { CwdCoreContract } from "../artifacts/typescript_schema/CwdCoreContract";
 import { IcqHelperContract } from "../artifacts/typescript_schema/IcqHelperContract";
@@ -52,13 +52,25 @@ async function run () {
   );
   console.log(chalk.cyan("Response: "), deploy_chain_registry);
 
-  // Init Chain Registry
-  const init_chain_registry = await chain_registry.instantiate(
-    {},
-    `Chain Registry contract ${runTs}`,
-    contract_owner
-  );
-  console.log(chalk.cyan("Response: "), init_chain_registry);
+  // // Init Chain Registry
+  // const init_chain_registry = await chain_registry.instantiate(
+  //   {},
+  //   `Chain Registry contract ${runTs}`,
+  //   contract_owner
+  // );
+  // console.log(chalk.cyan("Response: "), init_chain_registry);
+
+  // // Update chain registry for gaia
+  // const update_gaia_connection = await chain_registry.updateChainInfo(
+  //   {
+  //     account: contract_owner,
+  //   },
+  //   {
+  //     connectionId: "connection0",
+  //     remoteChain: "test2",
+  //   },
+  // );
+  // console.log(chalk.cyan("Response: "), update_gaia_connection);
 
   // Deploy Cwd Core
   const deploy_dao_core = await dao_core.deploy(
@@ -118,7 +130,8 @@ async function run () {
       description: "testing DAO",
       chain_list: [
         {
-          chain_id: "test-2",
+          chain_id: "test2",
+          connection_id: "connection-0",
           stake: 100,
         }
       ],
@@ -128,28 +141,41 @@ async function run () {
         admin: null,
         code_id: icq_helper.codeId,
         label: `ICQ Helper Contract ${runTs}`,
-        msg: {},
+        msg: Buffer.from(JSON.stringify({})).toString("base64"),
       },
       ica_helper_module_instantiate_info: {
         admin: null,
-        code_id: icq_helper.codeId,
+        code_id: ica_helper.codeId,
         label: `ICA Helper Contract ${runTs}`,
-        msg: {},
+        msg: Buffer.from(JSON.stringify({})).toString("base64"),
       },
-      proposal_modules_instantiate_info: [
-        {
-          admin: null,
-          code_id: icq_helper.codeId,
-          label: `Proposal Contract ${runTs}`,
-          msg: {},
-        }
-      ],
-      voting_registry_module_instantiate_info: {
-        admin: null,
-        code_id: icq_helper.codeId,
-        label: `Voting Contract ${runTs}`,
-        msg: {},
-      },
+      // proposal_modules_instantiate_info: [
+      //   {
+      //     admin: null,
+      //     code_id: proposal.codeId,
+      //     label: `Proposal Contract ${runTs}`,
+      //     msg: {
+      //       allow_revoting: true,
+      //       close_proposal_on_execution_failure: true,
+      //       max_voting_period: {
+      //         time: 100_000,  // 100,000 blocks
+      //       },
+      //       min_voting_period: {
+      //         time: 10_000,  // 10,000 blocks
+      //       },
+      //       pre_propose_info: {
+      //         anyone_may_propose: {},
+      //       },
+      //       threshold: {
+      //         absolute_percentage: {
+      //           percentage: {
+      //             percent: "0.6",  // 60%
+      //           }
+      //         },
+      //       },
+      //     },
+      //   }
+      // ],
     },
     `DAO Core contract ${runTs}`,
     contract_owner
@@ -157,6 +183,9 @@ async function run () {
   console.log(chalk.cyan("Response: "), core_contract_info);
 
   console.log("All contract instance created successfully");
+
+  const core_state = await dao_core.dumpState();
+  console.log("core_state", core_state);
 
   // // Register account on remote chain
   // const register_res = await staking_contract.register(
@@ -175,10 +204,6 @@ async function run () {
   // console.log(chalk.cyan("Response: "), register_res);
 
   // await sleep(10);  // wait for addr to be created
-
-
-
-
 
 
   // // Query interchain address

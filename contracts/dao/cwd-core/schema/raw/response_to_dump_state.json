@@ -6,11 +6,10 @@
   "required": [
     "active_proposal_module_count",
     "config",
+    "ica_helper",
     "pause_info",
-    "proposal_modules",
     "total_proposal_module_count",
-    "version",
-    "voting_module"
+    "version"
   ],
   "properties": {
     "active_proposal_module_count": {
@@ -27,15 +26,16 @@
         }
       ]
     },
+    "ica_helper": {
+      "description": "The governance modules associated with the governance contract. The voting module associated with the governance contract. The ICA helper module associated with the governance contract.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Addr"
+        }
+      ]
+    },
     "pause_info": {
       "$ref": "#/definitions/PauseInfoResponse"
-    },
-    "proposal_modules": {
-      "description": "The governance modules associated with the governance contract.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/ProposalModule"
-      }
     },
     "total_proposal_module_count": {
       "description": "The total number of proposal modules.",
@@ -48,14 +48,6 @@
       "allOf": [
         {
           "$ref": "#/definitions/ContractVersion"
-        }
-      ]
-    },
-    "voting_module": {
-      "description": "The voting module associated with the governance contract.",
-      "allOf": [
-        {
-          "$ref": "#/definitions/Addr"
         }
       ]
     }
@@ -190,45 +182,6 @@
           },
           "additionalProperties": false
         }
-      ]
-    },
-    "ProposalModule": {
-      "description": "Top level type describing a proposal module.",
-      "type": "object",
-      "required": [
-        "address",
-        "prefix",
-        "status"
-      ],
-      "properties": {
-        "address": {
-          "description": "The address of the proposal module.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Addr"
-            }
-          ]
-        },
-        "prefix": {
-          "description": "The URL prefix of this proposal module as derived from the module ID. Prefixes are mapped to letters, e.g. 0 is 'A', and 26 is 'AA'.",
-          "type": "string"
-        },
-        "status": {
-          "description": "The status of the proposal module, e.g. 'Active' or 'Disabled.'",
-          "allOf": [
-            {
-              "$ref": "#/definitions/ProposalModuleStatus"
-            }
-          ]
-        }
-      }
-    },
-    "ProposalModuleStatus": {
-      "description": "The status of a proposal module.",
-      "type": "string",
-      "enum": [
-        "Enabled",
-        "Disabled"
       ]
     },
     "Timestamp": {

@@ -1,5 +1,5 @@
 {
-  "name": "query-voting",
+  "name": "gov-aggregator",
   "version": "1.0.0",
   "main": "index.js",
   "license": "Apache-2.0",
@@ -8,7 +8,7 @@
     "build:watch": "tsc -w -p ."
   },
   "dependencies": {
-    "@arufa/wasmkit": "^0.2.5",
+    "@kubiklabs/wasmkit": "^0.2.6",
     "@cosmjs/cosmwasm-stargate": "^0.28.11",
     "@types/chai": "^4.3.0",
     "chai": "^4.3.4"

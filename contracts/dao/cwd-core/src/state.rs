@@ -51,8 +51,10 @@ pub struct ProposalModule {
 pub struct ChainStakeInfo {
     /// chain-id of the chain which got registered in the DAO.
     pub chain_id: String,
+    /// connection-id of the chain which got registered in the DAO.
+    pub connection_id: String,
     /// stake is the value of chain-id which hold in the list of chain
-    pub stake: u8
+    pub stake: u8,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -65,7 +67,7 @@ pub enum ProposalModuleStatus {
 /// The current configuration of the module.
 pub const CONFIG: Item<Config> = Item::new("config_v2");
 
-pub const CHAIN_STAKE: Map<String, u8> = Map::new("chain_stake");
+pub const CHAIN_STAKE: Map<String, ChainStakeInfo> = Map::new("chain_stake");
 // pub const CHAINS: Item<Vec<ChainStakeInfo>> = Item::new("chain_info");
 
 pub const ICA_HELPER: Item<Addr> = Item::new("ica_helper_contract");

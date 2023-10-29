@@ -11,11 +11,8 @@
       "contract_registry",
       "description",
       "ica_helper_module_instantiate_info",
-      "icq_helper_addr",
       "icq_helper_module_instantiate_info",
-      "name",
-      "proposal_modules_instantiate_info",
-      "voting_registry_module_instantiate_info"
+      "name"
     ],
     "properties": {
       "chain_list": {
@@ -40,21 +37,18 @@
         "type": "string"
       },
       "ica_helper_module_instantiate_info": {
-        "description": "Instantiate information for the ica helper contract",
+        "description": "Instantiate information for the core contract's voting power module. Instantiate information for the ica helper contract",
         "allOf": [
           {
             "$ref": "#/definitions/ModuleInstantiateInfo"
           }
         ]
       },
-      "icq_helper_addr": {
-        "$ref": "#/definitions/Addr"
-      },
       "icq_helper_module_instantiate_info": {
         "$ref": "#/definitions/ModuleInstantiateInfo"
       },
       "initial_items": {
-        "description": "Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
+        "description": "Instantiate information for the core contract's proposal modules. Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
         "type": [
           "array",
           "null"
@@ -66,21 +60,6 @@
       "name": {
         "description": "The name of the core contract.",
         "type": "string"
-      },
-      "proposal_modules_instantiate_info": {
-        "description": "Instantiate information for the core contract's proposal modules.",
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/ModuleInstantiateInfo"
-        }
-      },
-      "voting_registry_module_instantiate_info": {
-        "description": "Instantiate information for the core contract's voting power module.",
-        "allOf": [
-          {
-            "$ref": "#/definitions/ModuleInstantiateInfo"
-          }
-        ]
       }
     },
     "definitions": {
@@ -136,11 +115,16 @@
         "type": "object",
         "required": [
           "chain_id",
+          "connection_id",
           "stake"
         ],
         "properties": {
           "chain_id": {
             "description": "chain-id of the chain which got registered in the DAO.",
+            "type": "string"
+          },
+          "connection_id": {
+            "description": "connection-id of the chain which got registered in the DAO.",
             "type": "string"
           },
           "stake": {
@@ -801,7 +785,7 @@
                     ]
                   },
                   "channel_id": {
-                    "description": "exisiting channel to send the tokens over",
+                    "description": "existing channel to send the tokens over",
                     "type": "string"
                   },
                   "timeout": {
@@ -919,7 +903,7 @@
             "minimum": 0.0
           },
           "revision": {
-            "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+            "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
@@ -1200,7 +1184,7 @@
                     }
                   },
                   "label": {
-                    "description": "A human-readbale label for the contract",
+                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                     "type": "string"
                   },
                   "msg": {
@@ -1736,11 +1720,10 @@
       "required": [
         "active_proposal_module_count",
         "config",
+        "ica_helper",
         "pause_info",
-        "proposal_modules",
         "total_proposal_module_count",
-        "version",
-        "voting_module"
+        "version"
       ],
       "properties": {
         "active_proposal_module_count": {
@@ -1757,15 +1740,16 @@
             }
           ]
         },
+        "ica_helper": {
+          "description": "The governance modules associated with the governance contract. The voting module associated with the governance contract. The ICA helper module associated with the governance contract.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
+        },
         "pause_info": {
           "$ref": "#/definitions/PauseInfoResponse"
-        },
-        "proposal_modules": {
-          "description": "The governance modules associated with the governance contract.",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ProposalModule"
-          }
         },
         "total_proposal_module_count": {
           "description": "The total number of proposal modules.",
@@ -1778,14 +1762,6 @@
           "allOf": [
             {
               "$ref": "#/definitions/ContractVersion"
-            }
-          ]
-        },
-        "voting_module": {
-          "description": "The voting module associated with the governance contract.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Addr"
             }
           ]
         }
@@ -1920,45 +1896,6 @@
               },
               "additionalProperties": false
             }
-          ]
-        },
-        "ProposalModule": {
-          "description": "Top level type describing a proposal module.",
-          "type": "object",
-          "required": [
-            "address",
-            "prefix",
-            "status"
-          ],
-          "properties": {
-            "address": {
-              "description": "The address of the proposal module.",
-              "allOf": [
-                {
-                  "$ref": "#/definitions/Addr"
-                }
-              ]
-            },
-            "prefix": {
-              "description": "The URL prefix of this proposal module as derived from the module ID. Prefixes are mapped to letters, e.g. 0 is 'A', and 26 is 'AA'.",
-              "type": "string"
-            },
-            "status": {
-              "description": "The status of the proposal module, e.g. 'Active' or 'Disabled.'",
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ProposalModuleStatus"
-                }
-              ]
-            }
-          }
-        },
-        "ProposalModuleStatus": {
-          "description": "The status of a proposal module.",
-          "type": "string",
-          "enum": [
-            "Enabled",
-            "Disabled"
           ]
         },
         "Timestamp": {
