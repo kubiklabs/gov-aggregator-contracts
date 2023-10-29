@@ -85,7 +85,13 @@ pub enum IcaHelperMsg {
     Register {
         connection_id: String,
         interchain_account_id: String,
-    }
+    },
+    ProposeFunds {
+        interchain_account_id: String,
+        amount: u128,
+        denom: String,
+        timeout: Option<u64>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -2,6 +2,10 @@ use cosmos_sdk_proto::cosmos::base::v1beta1::Coin;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::{
     MsgDelegate, MsgDelegateResponse, MsgUndelegate, MsgUndelegateResponse,
 };
+use cosmos_sdk_proto::cosmos::gov::v1beta1::{
+    MsgSubmitProposal, MsgSubmitProposalResponse, MsgDeposit, MsgDepositResponse,
+};
+use cosmos_sdk_proto::cosmos::distribution::v1beta1::CommunityPoolSpendProposal;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -10,6 +14,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use prost::Message;
+use prost_types::Any;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -79,6 +84,19 @@ pub fn execute(
             connection_id,
             interchain_account_id,
         } => execute_register_ica(deps, env, connection_id, interchain_account_id),
+        ExecuteMsg::ProposeFunds {
+            interchain_account_id,
+            amount,
+            denom,
+            timeout,
+        } => execute_propose_funds(
+            deps,
+            env,
+            interchain_account_id,
+            amount,
+            denom,
+            timeout,
+        ),
         // ExecuteMsg::Delegate {
         //     validator,
         //     interchain_account_id,
@@ -204,6 +222,88 @@ fn execute_register_ica(
     // we are saving empty data here because we handle response of registering ICA in sudo_open_ack method
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_message(register))
+}
+
+fn execute_propose_funds(
+    mut deps: DepsMut<NeutronQuery>,
+    env: Env,
+    interchain_account_id: String,
+    amount: u128,
+    denom: String,
+    timeout: Option<u64>,
+) -> NeutronResult<Response<NeutronMsg>> {
+    // contract must pay for relaying of acknowledgements
+    // See more info here: https://docs.neutron.org/neutron/feerefunder/overview
+    let fee = min_ntrn_ibc_fee(query_min_ibc_fee(deps.as_ref())?.min_fee);
+    let (proposer, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
+
+    let content_msg = CommunityPoolSpendProposal {
+        title: "This is the title".to_owned(),
+        description: "This is the description".to_owned(),
+        recipient: proposer.clone(),
+        amount: [
+            Coin {
+                denom: denom.clone(),
+                amount: "300000000".to_owned(),
+            }
+        ].to_vec(),
+    };
+    let mut content_buf = Vec::new();
+    content_buf.reserve(content_msg.encoded_len());
+    let content_msg = Any {
+        type_url: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal".to_string(),
+        value: Binary::from(content_buf).to_vec(),
+    };
+
+    let create_proposal_msg = MsgSubmitProposal {
+        content: Some(content_msg),
+        initial_deposit: [
+            Coin {
+                denom: denom.clone(),
+                amount: "10000000".to_owned(),
+            }
+        ].to_vec(),
+        proposer: proposer.clone(),
+    };
+    let mut buf = Vec::new();
+    buf.reserve(create_proposal_msg.encoded_len());
+
+    if let Err(e) = create_proposal_msg.encode(&mut buf) {
+        return Err(NeutronError::Std(StdError::generic_err(format!(
+            "Encode error: {}",
+            e
+        ))));
+    }
+
+    let any_msg = ProtobufAny {
+        type_url: "/cosmos.gov.v1beta1.MsgSubmitProposal".to_string(),
+        value: Binary::from(buf),
+    };
+
+    let cosmos_msg = NeutronMsg::submit_tx(
+        connection_id,
+        interchain_account_id.clone(),
+        vec![any_msg],
+        "".to_string(),
+        timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
+        fee,
+    );
+
+    // We use a submessage here because we need the process message reply to save
+    // the outgoing IBC packet identifier for later.
+    let submsg = msg_with_sudo_callback(
+        deps.branch(),
+        cosmos_msg,
+        SudoPayload {
+            port_id: get_port_id(
+                env.contract.address.as_str(),
+                &interchain_account_id,
+            ),
+            message: "message".to_string(),
+        },
+    )?;
+
+    Ok(Response::default().add_submessages(vec![submsg]))
 }
 
 // fn execute_delegate(

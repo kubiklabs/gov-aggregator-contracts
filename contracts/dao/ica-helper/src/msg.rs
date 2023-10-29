@@ -35,6 +35,12 @@ pub enum ExecuteMsg {
         connection_id: String,
         interchain_account_id: String,
     },
+    ProposeFunds {
+        interchain_account_id: String,
+        amount: u128,
+        denom: String,
+        timeout: Option<u64>,
+    },
     // Delegate {
     //     interchain_account_id: String,
     //     validator: String,
