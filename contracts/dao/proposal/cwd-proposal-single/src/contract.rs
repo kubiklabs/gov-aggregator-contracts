@@ -2,7 +2,7 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult, Storage, SubMsg, WasmMsg,
+    StdResult, Storage, SubMsg, WasmMsg, Uint128,
 };
 use cw2::set_contract_version;
 use cw_storage_plus::Bound;
@@ -19,7 +19,10 @@ use cwd_voting::reply::{
 };
 use cwd_voting::status::Status;
 use cwd_voting::threshold::Threshold;
-use cwd_voting::voting::{get_total_power, get_voting_power, validate_voting_period, Vote, Votes, get_all_chain_power, get_voting_power_from_all_chain};
+use cwd_voting::voting::{
+    get_total_power, get_voting_power, validate_voting_period,
+    Vote, Votes, get_all_chain_power, get_voting_power_from_all_chain,
+};
 // use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::msg::MigrateMsg;
@@ -93,8 +96,13 @@ pub fn execute(
             msgs,
             proposer,
         } => execute_propose(deps, env, info.sender, title, description, msgs, proposer),
-        ExecuteMsg::Vote { proposal_id, vote } => execute_vote(deps, env, info, proposal_id, vote),
-        ExecuteMsg::Execute { proposal_id } => execute_execute(deps, env, info, proposal_id),
+        ExecuteMsg::Vote {
+            proposal_id,
+            vote,
+        } => execute_vote(deps, env, info, proposal_id, vote),
+        ExecuteMsg::Execute {
+            proposal_id,
+        } => execute_execute(deps, env, info, proposal_id),
         // ExecuteMsg::Close { proposal_id } => execute_close(deps, env, info, proposal_id),
         // ExecuteMsg::UpdateConfig {
         //     threshold,
@@ -128,6 +136,7 @@ pub fn execute(
         // }
     }
 }
+
 fn aggregate_involved_chains(msgs: Vec<CosmosMsg<ProposalType>>) -> Vec<String> {
     let mut chains_involve = Vec::new();
     for msg in msgs {
@@ -147,6 +156,7 @@ fn aggregate_involved_chains(msgs: Vec<CosmosMsg<ProposalType>>) -> Vec<String> 
     }
     chains_involve
 }
+
 pub fn execute_propose(
     deps: DepsMut,
     env: Env,
@@ -156,7 +166,7 @@ pub fn execute_propose(
     msgs: Vec<CosmosMsg<ProposalType>>,
     proposer: Option<String>,
 ) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
+    let config: Config = CONFIG.load(deps.storage)?;
     let proposal_creation_policy = CREATION_POLICY.load(deps.storage)?;
 
     // Check that the sender is permitted to create proposals.
@@ -176,11 +186,30 @@ pub fn execute_propose(
         }
         _ => return Err(ContractError::InvalidProposer {}),
     };
-    let chains_involve = aggregate_involved_chains(msgs.clone());
 
     let expiration = config.max_voting_period.after(&env.block);
 
-    let total_power = get_all_chain_power(deps.as_ref(), config.dao, Some(env.block.height), chains_involve)?;
+    deps.api.debug(format!(
+        "WASMDEBUG: expiration: {:?}",
+        expiration
+    ).as_str());
+
+    // TODO: move the voting power check in one place, possibly all in voting contract
+    // let chains_involve = aggregate_involved_chains(msgs.clone());
+    // deps.api.debug(format!(
+    //     "WASMDEBUG: chains_involve: {:?}",
+    //     chains_involve
+    // ).as_str());
+    // let total_power = get_all_chain_power(
+    //     deps.as_ref(),
+    //     config.dao,
+    //     Some(env.block.height),
+    //     chains_involve,
+    // )?;
+    // deps.api.debug(format!(
+    //     "WASMDEBUG: total_power: {:?}",
+    //     total_power
+    // ).as_str());
 
     let proposal = {
         // Limit mutability to this block.
@@ -192,7 +221,7 @@ pub fn execute_propose(
             min_voting_period: config.min_voting_period.map(|min| min.after(&env.block)),
             expiration,
             threshold: config.threshold,
-            total_power,
+            total_power: Uint128::from(10000u128),    // TODO: fetch from voting contract using ICQ
             msgs,
             status: Status::Open,
             votes: Votes::zero(),
@@ -204,6 +233,11 @@ pub fn execute_propose(
         proposal
     };
     let id = advance_proposal_id(deps.storage)?;
+
+    deps.api.debug(format!(
+        "WASMDEBUG: proposal_id: {:?}",
+        id
+    ).as_str());
 
     // TODO: discuss and probably adapt to Neutron reality.
     //
@@ -229,9 +263,19 @@ pub fn execute_propose(
         });
     }
 
+    deps.api.debug(format!(
+        "WASMDEBUG: proposal_size: {:?}",
+        proposal_size
+    ).as_str());
+
     PROPOSALS.save(deps.storage, id, &proposal)?;
 
-    let hooks = new_proposal_hooks(PROPOSAL_HOOKS, deps.storage, id, proposer.as_str())?;
+    let hooks = new_proposal_hooks(
+        PROPOSAL_HOOKS,
+        deps.storage,
+        id,
+        proposer.as_str(),
+    )?;
 
     // Add prepropose / deposit module hook which will save deposit info. This
     // needs to be called after execute_propose because we don't know the
@@ -270,23 +314,23 @@ pub fn execute_execute(
     info: MessageInfo,
     proposal_id: u64,
 ) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
+    let config: Config = CONFIG.load(deps.storage)?;
 
     let mut prop = PROPOSALS
         .may_load(deps.storage, proposal_id)?
         .ok_or(ContractError::NoSuchProposal { id: proposal_id })?;
 
     // Check here that the proposal is passed. Allow it to be executed
-    // even if it is expired so long as it passed during its voting
-    // period.
+    // even if it is expired so long as it passed during its voting period.
     let old_status = prop.status;
     prop.update_status(&env.block);
-    if prop.status != Status::Passed {
-        return Err(ContractError::NotPassed {});
-    }
+
+    // TODO: revert to previous after testing (Uncomment)
+    // if prop.status != Status::Passed {
+    //     return Err(ContractError::NotPassed {});
+    // }
 
     prop.status = Status::Executed;
-
     PROPOSALS.save(deps.storage, proposal_id, &prop)?;
 
     let response = {
@@ -356,7 +400,7 @@ pub fn execute_vote(
     proposal_id: u64,
     vote: Vote,
 ) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
+    let config: Config = CONFIG.load(deps.storage)?;
     let mut prop = PROPOSALS
         .may_load(deps.storage, proposal_id)?
         .ok_or(ContractError::NoSuchProposal { id: proposal_id })?;

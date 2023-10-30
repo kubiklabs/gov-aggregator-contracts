@@ -12,7 +12,8 @@
       "description",
       "ica_helper_module_instantiate_info",
       "icq_helper_module_instantiate_info",
-      "name"
+      "name",
+      "proposal_modules_instantiate_info"
     ],
     "properties": {
       "chain_list": {
@@ -48,7 +49,7 @@
         "$ref": "#/definitions/ModuleInstantiateInfo"
       },
       "initial_items": {
-        "description": "Instantiate information for the core contract's proposal modules. Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
+        "description": "Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
         "type": [
           "array",
           "null"
@@ -60,6 +61,13 @@
       "name": {
         "description": "The name of the core contract.",
         "type": "string"
+      },
+      "proposal_modules_instantiate_info": {
+        "description": "Instantiate information for the core contract's proposal modules.",
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ModuleInstantiateInfo"
+        }
       }
     },
     "definitions": {
@@ -1722,6 +1730,7 @@
         "config",
         "ica_helper",
         "pause_info",
+        "proposal_modules",
         "total_proposal_module_count",
         "version"
       ],
@@ -1741,7 +1750,7 @@
           ]
         },
         "ica_helper": {
-          "description": "The governance modules associated with the governance contract. The voting module associated with the governance contract. The ICA helper module associated with the governance contract.",
+          "description": "The voting module associated with the governance contract. The ICA helper module associated with the governance contract.",
           "allOf": [
             {
               "$ref": "#/definitions/Addr"
@@ -1750,6 +1759,13 @@
         },
         "pause_info": {
           "$ref": "#/definitions/PauseInfoResponse"
+        },
+        "proposal_modules": {
+          "description": "The governance modules associated with the governance contract.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProposalModule"
+          }
         },
         "total_proposal_module_count": {
           "description": "The total number of proposal modules.",
@@ -1896,6 +1912,45 @@
               },
               "additionalProperties": false
             }
+          ]
+        },
+        "ProposalModule": {
+          "description": "Top level type describing a proposal module.",
+          "type": "object",
+          "required": [
+            "address",
+            "prefix",
+            "status"
+          ],
+          "properties": {
+            "address": {
+              "description": "The address of the proposal module.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "prefix": {
+              "description": "The URL prefix of this proposal module as derived from the module ID. Prefixes are mapped to letters, e.g. 0 is 'A', and 26 is 'AA'.",
+              "type": "string"
+            },
+            "status": {
+              "description": "The status of the proposal module, e.g. 'Active' or 'Disabled.'",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ProposalModuleStatus"
+                }
+              ]
+            }
+          }
+        },
+        "ProposalModuleStatus": {
+          "description": "The status of a proposal module.",
+          "type": "string",
+          "enum": [
+            "Enabled",
+            "Disabled"
           ]
         },
         "Timestamp": {

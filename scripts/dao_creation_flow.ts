@@ -149,33 +149,33 @@ async function run () {
         label: `ICA Helper Contract ${runTs}`,
         msg: Buffer.from(JSON.stringify({})).toString("base64"),
       },
-      // proposal_modules_instantiate_info: [
-      //   {
-      //     admin: null,
-      //     code_id: proposal.codeId,
-      //     label: `Proposal Contract ${runTs}`,
-      //     msg: {
-      //       allow_revoting: true,
-      //       close_proposal_on_execution_failure: true,
-      //       max_voting_period: {
-      //         time: 100_000,  // 100,000 blocks
-      //       },
-      //       min_voting_period: {
-      //         time: 10_000,  // 10,000 blocks
-      //       },
-      //       pre_propose_info: {
-      //         anyone_may_propose: {},
-      //       },
-      //       threshold: {
-      //         absolute_percentage: {
-      //           percentage: {
-      //             percent: "0.6",  // 60%
-      //           }
-      //         },
-      //       },
-      //     },
-      //   }
-      // ],
+      proposal_modules_instantiate_info: [
+        {
+          admin: null,
+          code_id: proposal.codeId,
+          label: `Proposal Contract ${runTs}`,
+          msg: Buffer.from(JSON.stringify({
+            allow_revoting: true,
+            close_proposal_on_execution_failure: true,
+            max_voting_period: {
+              time: 100_000,  // 100,000 blocks
+            },
+            min_voting_period: {
+              time: 10_000,  // 10,000 blocks
+            },
+            pre_propose_info: {
+              anyone_may_propose: {},
+            },
+            threshold: {
+              absolute_percentage: {
+                percentage: {
+                  percent: "0.6",  // 60%
+                }
+              },
+            },
+          })).toString("base64"),
+        }
+      ],
     },
     `DAO Core contract ${runTs}`,
     contract_owner
@@ -187,59 +187,157 @@ async function run () {
   const core_state = await dao_core.dumpState();
   console.log("core_state", core_state);
 
-  // // Register account on remote chain
-  // const register_res = await staking_contract.register(
-  //   {
-  //     account: contract_owner,
-  //     customFees: {
-  //       amount: [{ amount: "75000", denom: nativeDenom }],
-  //       gas: "300000",
-  //     },
-  //   },
-  //   {
-  //     connectionId: connectionId,
-  //     interchainAccountId: interchainAccountName,
-  //   }
-  // );
-  // console.log(chalk.cyan("Response: "), register_res);
+  // Update the contractAddress in Proposal contract
+  proposal.instantiatedWithAddress(core_state.proposal_modules[0].address);
+  console.log(chalk.cyan("Updated Proposal module address: "), proposal.contractAddress);
 
-  // await sleep(10);  // wait for addr to be created
+  // Update the contractAddress in ICA helper
+  ica_helper.instantiatedWithAddress(core_state.ica_helper);
+  console.log(chalk.cyan("Updated ICA helper address: "), ica_helper.contractAddress);
 
+  // Register account on remote chain
+  const register_res = await ica_helper.register(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+      transferAmount: [ // fee for doing all following ICA txns, a bit more than min_fee
+        { amount: "500000", denom: nativeDenom }
+      ]
+    },
+    {
+      connectionId: connectionId,
+      interchainAccountId: interchainAccountName,
+    }
+  );
+  console.log(chalk.cyan("Response: "), register_res);
 
-  // // Query interchain address
-  // const accountInfo = await dao_core.interchainAccountAddress({
-  //   connectionId: connectionId,
-  //   interchainAccountId: interchainAccountName,
-  // });
-  // console.log(chalk.cyan("Response: "), "account info: ", JSON.stringify(accountInfo, null, 2));
+  await sleep(10);  // wait for addr to be created
 
-  // // Query more account data
-  // const moreAccountInfo = await dao_core.interchainAccountAddressFromContract({
-  //   interchainAccountId: interchainAccountName,
-  // });
-  // console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(moreAccountInfo, null, 2));
+  // Query interchain address
+  const accountInfo = await ica_helper.interchainAccountAddress({
+    connectionId: connectionId,
+    interchainAccountId: interchainAccountName,
+  });
+  console.log(chalk.cyan("Response: "), "account info: ", JSON.stringify(accountInfo, null, 2));
 
-  // // Delegate 1 atom
-  // const stake_claim_res = await dao_core.delegate(
-  //   {
-  //     account: contract_owner,
-  //     customFees: {
-  //       amount: [{ amount: "75000", denom: nativeDenom }],
-  //       gas: "3000000",
-  //     },
-  //     transferAmount: [ // fee for doing ICA, should just a bit more than min_fee
-  //       { amount: "50000", denom: nativeDenom }
-  //     ]
-  //   },
-  //   {
-  //     amount: "1000000" as any,  // 1 atom
-  //     denom: remoteDenom,
-  //     interchainAccountId: interchainAccountName,
-  //     timeout: null,  // in seconds, TODO: confirm it later
-  //     validator: remoteValidatorOne,
-  //   }
-  // );
-  // console.log(chalk.cyan("Response: "), stake_claim_res);
+  // Query more account data
+  const moreAccountInfo = await ica_helper.interchainAccountAddressFromContract({
+    interchainAccountId: interchainAccountName,
+  });
+  console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(moreAccountInfo, null, 2));
+
+  await sleep(30);  // wait for addr to be funded manually
+
+  // propose a text proposal with [] msgs
+  const text_prop_create = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is first proposal",
+      description: "This is a text proposal",
+      msgs: [],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+  console.log(chalk.cyan("Response: "), text_prop_create);
+
+  // propose a text proposal with [GetFunds] msgs
+  const get_fund_prop_create = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is second proposal",
+      description: "This is a community pool fund proposal",
+      msgs: [
+        {
+          wasm: {
+            execute: {
+              contract_addr: ica_helper.contractAddress,
+              msg: Buffer.from(JSON.stringify({
+                propose_funds: {
+                  amount: "1000000" as any,  // 1 atom
+                  denom: remoteDenom,
+                  interchain_account_id: interchainAccountName,
+                  timeout: null,  // in seconds, TODO: confirm it later
+                }
+              })).toString("base64"),
+              funds: [],
+            }
+          }
+        }
+      ],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+  console.log(chalk.cyan("Response: "), get_fund_prop_create);
+
+  // Query all proposals
+  const proposals_list = await proposal.listProposals(
+    {
+      limit: 10,
+      startAfter: null,
+    },
+  );
+  console.log(chalk.cyan("Proposals list: "), proposals_list);
+
+  // Query first proposal
+  const proposals_first = await proposal.proposal(
+    {
+      proposalId: 1,
+    },
+  );
+  console.log(chalk.cyan("First proposal: "), proposals_first);
+
+  // Query second proposal
+  const proposals_second = await proposal.proposal(
+    {
+      proposalId: 2,
+    },
+  );
+  console.log(chalk.cyan("Second proposal: "), proposals_second);
+
+  // Execute the text proposal
+  const execute_first = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+    },
+    {
+      proposalId: 1,
+    }
+  );
+  console.log(chalk.cyan("Execute first proposal: "), execute_first);
+
+  // Execute the GetFunds proposal
+  const execute_second = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+    },
+    {
+      proposalId: 2,
+    }
+  );
+  console.log(chalk.cyan("Execute second proposal: "), execute_second);
 
   // // const c1 = await staking_contract.info();
   // // console.log("info before deposit: ",c1);

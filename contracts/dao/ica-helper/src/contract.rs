@@ -252,6 +252,11 @@ fn execute_propose_funds(
         ].to_vec(),
         proposer: proposer.clone(),
     };
+
+    deps.api.debug(format!(
+        "WASMDEBUG: create_proposal_msg: {:?}",
+        create_proposal_msg
+    ).as_str());
     let mut buf = Vec::new();
     buf.reserve(create_proposal_msg.encoded_len());
 

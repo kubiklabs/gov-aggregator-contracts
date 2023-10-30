@@ -17,7 +17,7 @@ pub struct DumpStateResponse {
     /// The governance contract's version.
     pub version: ContractVersion,
     /// The governance modules associated with the governance contract.
-    // pub proposal_modules: Vec<ProposalModule>,
+    pub proposal_modules: Vec<ProposalModule>,
     /// The voting module associated with the governance contract.
     // pub voting_module: Addr,
     /// The ICA helper module associated with the governance contract.

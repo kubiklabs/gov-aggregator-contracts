@@ -8,7 +8,8 @@
     "description",
     "ica_helper_module_instantiate_info",
     "icq_helper_module_instantiate_info",
-    "name"
+    "name",
+    "proposal_modules_instantiate_info"
   ],
   "properties": {
     "chain_list": {
@@ -44,7 +45,7 @@
       "$ref": "#/definitions/ModuleInstantiateInfo"
     },
     "initial_items": {
-      "description": "Instantiate information for the core contract's proposal modules. Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
+      "description": "Initial information for arbitrary contract addresses to be added to the items map. The key is the name of the item in the items map. The value is an enum that either uses an existing address or instantiates a new contract.",
       "type": [
         "array",
         "null"
@@ -56,6 +57,13 @@
     "name": {
       "description": "The name of the core contract.",
       "type": "string"
+    },
+    "proposal_modules_instantiate_info": {
+      "description": "Instantiate information for the core contract's proposal modules.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ModuleInstantiateInfo"
+      }
     }
   },
   "definitions": {

@@ -48,7 +48,7 @@ pub struct InstantiateMsg {
     /// proposal modules.
     // NOTE: the pre-propose-base package depends on it being the case
     // that the core module instantiates its proposal module.
-    // pub proposal_modules_instantiate_info: Vec<ModuleInstantiateInfo>,
+    pub proposal_modules_instantiate_info: Vec<ModuleInstantiateInfo>,
 
     /// Initial information for arbitrary contract addresses to be
     /// added to the items map. The key is the name of the item in the

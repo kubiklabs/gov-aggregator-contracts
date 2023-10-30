@@ -3,6 +3,7 @@
   "title": "ExecuteMsg",
   "oneOf": [
     {
+      "description": "Register a remote account",
       "type": "object",
       "required": [
         "register"
@@ -27,6 +28,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Create a community spend proposal using remote address on remote chain",
       "type": "object",
       "required": [
         "propose_funds"
@@ -44,6 +46,49 @@
               "type": "integer",
               "format": "uint128",
               "minimum": 0.0
+            },
+            "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
+              "type": "string"
+            },
+            "timeout": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Send an asset over IBC to remote account",
+      "type": "object",
+      "required": [
+        "send_asset"
+      ],
+      "properties": {
+        "send_asset": {
+          "type": "object",
+          "required": [
+            "amount",
+            "channel",
+            "denom",
+            "interchain_account_id"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "channel": {
+              "type": "string"
             },
             "denom": {
               "type": "string"

@@ -46,23 +46,23 @@ async function run () {
 
   console.log("All contract instance created successfully");
 
-  // // Register account on remote chain
-  // const register_res = await ica_helper.register(
-  //   {
-  //     account: contract_owner,
-  //     customFees: {
-  //       amount: [{ amount: "75000", denom: nativeDenom }],
-  //       gas: "300000",
-  //     },
-  //   },
-  //   {
-  //     connectionId: connectionId,
-  //     interchainAccountId: interchainAccountName,
-  //   }
-  // );
-  // console.log(chalk.cyan("Response: "), register_res);
+  // Register account on remote chain
+  const register_res = await ica_helper.register(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      connectionId: connectionId,
+      interchainAccountId: interchainAccountName,
+    }
+  );
+  console.log(chalk.cyan("Response: "), register_res);
 
-  // await sleep(10);  // wait for addr to be created
+  await sleep(10);  // wait for addr to be created
 
   // Query interchain address
   const accountInfo = await ica_helper.interchainAccountAddress({

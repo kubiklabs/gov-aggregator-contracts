@@ -74,15 +74,15 @@ pub fn instantiate(
         ICQ_HELPER_INSTANTIATE_REPLY_ID,
     );
 
-    // let proposal_module_msgs: Vec<SubMsg<NeutronMsg>> = msg
-    //     .proposal_modules_instantiate_info
-    //     .into_iter()
-    //     .map(|info| info.into_wasm_msg(env.contract.address.clone()))
-    //     .map(|wasm| SubMsg::reply_on_success(wasm, PROPOSAL_MODULE_REPLY_ID))
-    //     .collect();
-    // if proposal_module_msgs.is_empty() {
-    //     return Err(ContractError::NoActiveProposalModules {});
-    // }
+    let proposal_module_submsgs: Vec<SubMsg<NeutronMsg>> = msg
+        .proposal_modules_instantiate_info
+        .into_iter()
+        .map(|info| info.into_wasm_msg(env.contract.address.clone()))
+        .map(|wasm| SubMsg::reply_on_success(wasm, PROPOSAL_MODULE_REPLY_ID))
+        .collect();
+    if proposal_module_submsgs.is_empty() {
+        return Err(ContractError::NoActiveProposalModules {});
+    }
 
     for InitialItem { key, value } in msg.initial_items.unwrap_or_default() {
         ITEMS.save(deps.storage, key, &value)?;
@@ -109,7 +109,7 @@ pub fn instantiate(
         .add_attribute("sender", info.sender)
         // .add_submessage(vote_module_msg)
         // .add_submessage(icq_module_msg)
-        // .add_submessages(proposal_module_msgs)
+        .add_submessages(proposal_module_submsgs)
         .add_submessage(ica_module_msg))
 }
 
@@ -192,24 +192,15 @@ pub fn execute_proposal_hook(
     //         messages.push(message);
     // }
 
+    deps.api.debug(format!(
+        "WASMDEBUG: msgs: {:?}",
+        msgs
+    ).as_str());
     Ok(Response::default()
         .add_attribute("action", "execute_proposal_hook")
         .add_messages(msgs))
 }
 
-// fn create_ica_proposal_message_on_remote_chain_for_fund(
-//     // deps: DepsMut,
-//     // env: Env,
-//     // sender: Addr,
-//     demand_info: Vec<FundInfo>
-// ) -> NeutronMsg {
-//     // create msg for registering proposal on ica contract
-//     for demands in demand_info {
-
-
-//     }
-    
-// }
 pub fn execute_update_config(
     deps: DepsMut,
     env: Env,
@@ -344,32 +335,6 @@ pub fn execute_remove_item(
     }
 }
 
-// pub fn execute_update_sub_daos_list(
-//     deps: DepsMut,
-//     env: Env,
-//     sender: Addr,
-//     to_add: Vec<SubDao>,
-//     to_remove: Vec<String>,
-// ) -> Result<Response<ProposalType>, ContractError> {
-//     if env.contract.address != sender {
-//         return Err(ContractError::Unauthorized {});
-//     }
-
-//     for addr in to_remove {
-//         let addr = deps.api.addr_validate(&addr)?;
-//         SUBDAO_LIST.remove(deps.storage, &addr);
-//     }
-
-//     for subdao in to_add {
-//         let addr = deps.api.addr_validate(&subdao.addr)?;
-//         SUBDAO_LIST.save(deps.storage, &addr, &subdao.charter)?;
-//     }
-
-//     Ok(Response::default()
-//         .add_attribute("action", "execute_update_sub_daos_list")
-//         .add_attribute("sender", sender))
-// }
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
@@ -493,10 +458,10 @@ pub fn query_dump_state(deps: Deps, env: Env) -> StdResult<Binary> {
     
     let ica_contract = ICA_HELPER.load(deps.storage)?;
     // let voting_registry_module = VOTING_REGISTRY_MODULE.load(deps.storage)?;
-    // let proposal_modules = PROPOSAL_MODULES
-    //     .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-    //     .map(|kv| Ok(kv?.1))
-    //     .collect::<StdResult<Vec<ProposalModule>>>()?;
+    let proposal_modules = PROPOSAL_MODULES
+        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .map(|kv| Ok(kv?.1))
+        .collect::<StdResult<Vec<ProposalModule>>>()?;
     let pause_info = get_pause_info(deps, env)?;
     let version = get_contract_version(deps.storage)?;
     let active_proposal_module_count = ACTIVE_PROPOSAL_MODULE_COUNT.load(deps.storage)?;
@@ -505,7 +470,7 @@ pub fn query_dump_state(deps: Deps, env: Env) -> StdResult<Binary> {
         config,
         version,
         pause_info,
-        // proposal_modules,
+        proposal_modules,
         // voting_module: voting_registry_module,
         ica_helper: ica_contract,
         active_proposal_module_count,
@@ -721,7 +686,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg
             ICA_HELPER.save(deps.storage, &ica_helper_address)?;
 
             // By this time ICA contract should have instantiated
-            let ica_contract: Addr = ICA_HELPER.load(deps.storage)?;
             // deps.api.debug(format!(
             //     "WASMDEBUG: ica_contract: {:?}",
             //     ica_contract
@@ -738,7 +702,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg
                 // Register ICA account on each remote chain
                 messages.push(
                     CosmosMsg::Wasm(WasmMsg::Execute { 
-                        contract_addr: ica_contract.clone().into_string(), 
+                        contract_addr: ica_helper_address.clone().into_string(), 
                         msg: to_binary(&IcaHelperMsg::Register {
                             connection_id: chain_details.connection_id.clone(),
                             interchain_account_id: chain_details.chain_id.clone(),
