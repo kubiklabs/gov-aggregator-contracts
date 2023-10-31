@@ -11,6 +11,8 @@
     "@kubiklabs/wasmkit": "^0.2.6",
     "@cosmjs/cosmwasm-stargate": "^0.28.11",
     "@types/chai": "^4.3.0",
-    "chai": "^4.3.4"
+    "chai": "^4.3.4",
+    "@cosmjs/proto-signing": "^0.31.3",
+    "@cosmjs/stargate": "^0.31.3"
   }
 }

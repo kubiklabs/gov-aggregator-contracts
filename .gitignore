@@ -17,3 +17,6 @@ Cargo.lock
 artifacts/
 
 node_modules/
+setup/node_modules
+setup/delegate.js
+setup/undelegate.js

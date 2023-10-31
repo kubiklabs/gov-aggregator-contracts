@@ -27,19 +27,6 @@ The core contracts are as follows:
 6. **ica_helper**: Helper methods to do ICA actions such as registering remote address on each remote chain, creating commuity pool spend proposal, transferring funds from remote chain to the DAO treasury over IBC, sending the DAO treasury back to remote chain's community pool over IBC.
 7. **chain_registry**: Holds the IBC connection details of the remote chain with neutron. Things such as connectionId, channelds for ICA, ICQ, token transfer, status of the connection. This can be a single contract containing a list of all chains or multiple contracts and each one having list of connections to a given remote chain. Other chain metadata such as gas denom, community pool address could also be stored here.
 
+## 4. Scripts and Setup
 
-
----------------------------------------------------------
-
-proposal contract -
-1. Need to change the data structure for quering voting power for storing it in the contract.
-2. Change data structure and voting , make it compatible for multi-chain voting.
-
-core-contract
-1. Need to Implement the execution of proposal type messages that will be executed after proposal is passed.
-
-Voting contract-
-1. Haven't checked yet
-
-ICQ contract
-1. Implement event listening and storage for it
+The "Setup" directory comprises two TypeScript files: "delegate.ts" and "undelegate.ts." These files offer the flexibility to configure various parameters, including the delegator's and validator's mnemonics, the chain's RPC (Remote Procedure Call) endpoint, and the specific amounts for delegating or undelegating tokens, among other customizable settings.
