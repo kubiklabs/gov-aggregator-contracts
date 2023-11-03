@@ -45,6 +45,28 @@ The core contracts are as follows:
 4. **ICQ helper**: Does interchain queries on remote chains for staked assets, balances and unstaking/staking events. 
 5. **ICA helper**: Does the ICA transactions on remote chains and IBC transfers, e.g. creating commuity pool spend proposal, transferring funds from remote chain to the DAO treasury over IBC, sending the DAO treasury back to remote chain's community pool over IBC.
 
+## Key features
+
+In summary, the interchain DAO does following:
+
+1. Create CommunityPoolSpend proposals on any chain from Neutron using smart contracts and ICA over IBC
+2. Keep track of voting power of staked asset on any chain and report to Neutron, so that stakers of that chain can vote in this DAO withoout doing anything extra
+3. Transfer funds between DAO and remote chains over IBC
+
+## How we implemented
+
+1. The work uses DAO-DAO contracts as starting point
+2. Proposal module was modified to accomodate creating of ICA proposals
+3. Voting module was modified to accomodate tracking staked asset on remote chain as voting power
+4. DAO core module was modified to store split of multiple chains 
+5. ICA helper was created, that does the CommunityPoolSpend proposal, IBC asset transfers
+5. ICQ helper was created, that does the interchain queries for voting power, asset balances and staking/unstaking events
+
+## Future work
+
+1. Allow funds to be vested and based upon deliverables
+2. Allow Community pools to opt-out of a specific proposal
+3. Chains to have Veto power in voting
 
 ## 4. Code flow diagram
 
