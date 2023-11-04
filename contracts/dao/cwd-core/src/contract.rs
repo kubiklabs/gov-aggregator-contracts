@@ -668,7 +668,21 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<NeutronMsg
         ICA_HELPER_INSTANTIATE_REPLY_ID => {
             let mut messages:Vec<CosmosMsg<NeutronMsg>> = vec![];
 
-            let res = parse_reply_instantiate_data(msg)?;
+            let res = parse_reply_instantiate_data(msg.clone())?;
+            deps.api.debug(
+                format!(
+                    "WASMDEBUG: query create res inner_data msg: {:?}",
+                    msg,
+                )
+                .as_str(),
+            );
+            deps.api.debug(
+                format!(
+                    "WASMDEBUG: query create res inner_data res: {:?}",
+                    res,
+                )
+                .as_str(),
+            );
             let ica_helper_address = deps.api.addr_validate(&res.contract_address)?;
             let current = ICA_HELPER.may_load(deps.storage)?;
 

@@ -27,7 +27,7 @@ async function run () {
 
   console.log("admin account fetched successfully");
 
-  // send 15,000 atom to remote addr
+  // send 15,000 ATOM to remote addr
   const sendResponse = await client.sendTokens(
     contract_owner.account.address,
     interchainAccount,

@@ -4,7 +4,7 @@
       "chain_id": "test-2",
       "denom": "uatom",
       "connection_id": "connection-0",
-      "source_channel_id": "",
+      "source_channel_id": "channel-1",
       "destination_channel_id": ""
     }
   },

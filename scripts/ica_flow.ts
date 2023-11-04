@@ -16,6 +16,7 @@ async function run () {
   const remoteDenom = "uatom";  // cosmos hub fee token
   const contract_owner = await getAccountByName("account_0");
 
+  const channelId = networkConfig.relayers.gaia.source_channel_id;
   const connectionId = networkConfig.relayers.gaia.connection_id;
   const interchainAccountName = "remote_account_1";
   const remoteValidatorOne = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
@@ -77,6 +78,30 @@ async function run () {
   });
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(moreAccountInfo, null, 2));
 
+  // Send NTRN to remote account
+  const send_ntrn = await ica_helper.sendAsset(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "3000000",
+      },
+      transferAmount: [ // fee for doing IBC transfer, should just a bit more than min_fee
+        { amount: "1050000", denom: nativeDenom }
+      ] // added tranfer amount to IBC gas
+    },
+    {
+      amount: "1000000" as any,  // 1 NTRN
+      denom: nativeDenom,
+      interchainAccountId: accountInfo.interchain_account_address,
+      channel: channelId,
+      timeout: null,
+    }
+  );
+  console.log(chalk.cyan("Response: "), send_ntrn);
+
+  // Send ATOM to remote account
+
   // Make community spend proposal
   const create_proposal_res = await ica_helper.proposeFunds(
     {
@@ -112,32 +137,8 @@ async function run () {
   });
   console.log(chalk.cyan("Response: "), "2", ack_results_2);
 
-  const ack_results_3 = await ica_helper.acknowledgementResult({
-    interchainAccountId: interchainAccountName,
-    sequenceId: 3,
-  });
-  console.log(chalk.cyan("Response: "), "3", ack_results_3);
-
-  const ack_results_4 = await ica_helper.acknowledgementResult({
-    interchainAccountId: interchainAccountName,
-    sequenceId: 4,
-  });
-  console.log(chalk.cyan("Response: "), "4", ack_results_4);
-
-  const ack_results_5 = await ica_helper.acknowledgementResult({
-    interchainAccountId: interchainAccountName,
-    sequenceId: 5,
-  });
-  console.log(chalk.cyan("Response: "), "5", ack_results_5);
-
-  const ack_results_6 = await ica_helper.acknowledgementResult({
-    interchainAccountId: interchainAccountName,
-    sequenceId: 6,
-  });
-  console.log(chalk.cyan("Response: "), "6", ack_results_6);
-
-  // // const c1 = await staking_contract.info();
-  // // console.log("info before deposit: ",c1);
+  // const c1 = await staking_contract.info();
+  // console.log("info before deposit: ",c1);
 }
 
 module.exports = { default: run };
