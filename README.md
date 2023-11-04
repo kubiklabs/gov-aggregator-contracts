@@ -32,8 +32,6 @@ The DAO is implemented using CosmWasm smart contracts and consists of 5 parts:
 4. ICA helper: Does the ICA transactions on remote chains and IBC transfers
 5. ICQ helper: Does interchain queries on remote chains for staked assets, balances and unstaking/staking events
 
-**Note:** For in-depth project architecture and the flow of contracts, please refer to the contracts repository here at [https://github.com/kubiklabs/gov-aggregator-contracts](https://github.com/kubiklabs/gov-aggregator-contracts)
-
 ## 3. Contracts list
 The core contracts are as follows:
 
