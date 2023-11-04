@@ -1,4 +1,5 @@
 use crate::state::Transfer;
+use cosmwasm_std::Addr;
 use neutron_sdk::bindings::types::KVKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -60,12 +61,12 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Balance { query_id: u64 },
+    Balance { address: Addr },
     BankTotalSupply { query_id: u64 },
     DistributionFeePool { query_id: u64 },
     StakingValidators { query_id: u64 },
     GovernmentProposals { query_id: u64 },
-    GetDelegations { query_id: u64 },
+    GetDelegations { address: Addr },
     GetRegisteredQuery { query_id: u64 },
     GetRecipientTxs { recipient: String },
 }

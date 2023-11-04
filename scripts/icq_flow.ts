@@ -47,6 +47,33 @@ async function run () {
 
   console.log("All contract instance created successfully");
 
+  // Register delegations user query
+  const register_delegations_user_res = await icq_helper.registerDelegatorDelegationsQuery(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+      transferAmount: [ // fee for doing multiple ICQ queries, should just a bit more than min_fee
+        { amount: "2000000", denom: nativeDenom }
+      ]
+    },
+    {
+      delegator: remoteAccount,
+      connectionId: connectionId,
+      validators: [remoteValidatorOne],
+      updatePeriod: 5, // 5 blocks update period
+    }
+  );
+  console.log(chalk.cyan("Response: "), JSON.stringify(register_delegations_user_res, null, 2));
+
+  await sleep(10);  // wait for query to be registered
+
+  // Query delegations user
+  const remote_delegations_user = await icq_helper.getDelegations({ address: remoteAccount });
+  console.log(chalk.cyan("Response: "), JSON.stringify(remote_delegations_user, null, 2));
+
   // Register balance query
   const register_balance_res = await icq_helper.registerBalanceQuery(
     {
@@ -68,18 +95,11 @@ async function run () {
   );
   console.log(chalk.cyan("Response: "), JSON.stringify(register_balance_res, null, 2));
 
-  await sleep(20);  // wait for query to be registered
+  await sleep(10);  // wait for query to be registered
 
   // Query balance
-  const remote_balance = await icq_helper.balance({ queryId: 1 });
-  console.log(chalk.cyan("Response: "), remote_balance);
-
-  // // Query interchain address
-  // const accountInfo = await icq_helper.interchainAccountAddress({
-  //   connectionId: connectionId,
-  //   interchainAccountId: interchainAccountName,
-  // });
-  // console.log(chalk.cyan("Response: "), "account info: ", JSON.stringify(accountInfo, null, 2));
+  const remote_balance = await icq_helper.balance({ address: remoteAccount });
+  console.log(chalk.cyan("Response: "), JSON.stringify(remote_balance, null, 2));
 }
 
 module.exports = { default: run };

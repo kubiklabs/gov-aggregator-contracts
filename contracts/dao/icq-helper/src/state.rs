@@ -1,48 +1,29 @@
-use cosmwasm_std::{Storage, StdResult, to_vec, from_binary, Binary, Order};
-use cw_storage_plus::{Item, Map};
+use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use cw_storage_plus::{Item, Map, Deque};
 
 pub type Recipient = str;
 
 pub const BALANCE_QUERY_REPLY_ID: u64 = 0;
-// pub const VOTE_MODULE_INSTANTIATE_REPLY_ID: u64 = 1;
+pub const DELEGATION_USER_QUERY_REPLY_ID: u64 = 1;
 // pub const VOTE_MODULE_UPDATE_REPLY_ID: u64 = 2;
-// pub const ICA_HELPER_INSTANTIATE_REPLY_ID: u64 = 3;
-// pub const ICQ_HELPER_INSTANTIATE_REPLY_ID: u64 = 4;
 
-// pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
-// pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
-// pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
-// pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
-// pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =
-//     Map::new("acknowledgement_results");
+/// maps remote address with interchain query_id
+pub const BALANCE_QUERY_ID: Map<Addr, u64> = Map::new("balance_ids");
+pub const DELEGATION_USER_QUERY_ID: Map<Addr, u64> = Map::new("delegation_user_ids");
 
 /// contains all transfers mapped by a recipient address observed by the contract.
 pub const RECIPIENT_TXS: Map<&Recipient, Vec<Transfer>> = Map::new("recipient_txs");
 /// contains number of transfers to addresses observed by the contract.
 pub const TRANSFERS: Item<u64> = Item::new("transfers");
 
-// /// SudoPayload is a type that stores information about a transaction that we try to execute
-// /// on the host chain. This is a type introduced for our convenience.
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-// #[serde(rename_all = "snake_case")]
-// pub struct SudoPayload {
-//     pub message: String,
-//     // pub port_id: String,
-// }
-
-// /// Serves for storing acknowledgement calls for interchain transactions
-// #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
-// #[serde(rename_all = "snake_case")]
-// pub enum AcknowledgementResult {
-//     /// Success - Got success acknowledgement in sudo with array of message item types in it
-//     Success(Vec<String>),
-//     /// Error - Got error acknowledgement in sudo with payload message in it and error details
-//     Error((String, String)),
-//     /// Timeout - Got timeout acknowledgement in sudo with payload message in it
-//     Timeout(String),
-// }
+/// Reply ID queues to map query id with metdata keys such as address
+/// TODO: Not too sure here if reordering will happen
+/// if multiple queries created in a single atomic txn
+/// but works fine if only one query created per txn
+pub const BALANCE_QUERY_QUEUE: Deque<Addr> = Deque::new("balance_query_queue");
+pub const DELEGATION_USER_QUERY_QUEUE: Deque<Addr> = Deque::new("delegation_user_query_queue");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Transfer {
@@ -52,33 +33,8 @@ pub struct Transfer {
     pub amount: String,
 }
 
-// pub fn save_reply_payload(store: &mut dyn Storage, payload: SudoPayload) -> StdResult<()> {
-//     REPLY_ID_STORAGE.save(store, &to_vec(&payload)?)
-// }
-
-// pub fn read_sudo_payload(
-//     store: &mut dyn Storage,
-//     channel_id: String,
-//     seq_id: u64,
-// ) -> StdResult<SudoPayload> {
-//     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
-//     from_binary(&Binary(data))
-// }
-
-// pub fn add_error_to_queue(store: &mut dyn Storage, error_msg: String) -> Option<()> {
-//     let result = ERRORS_QUEUE
-//         .keys(store, None, None, Order::Descending)
-//         .next()
-//         .and_then(|data| data.ok())
-//         .map(|c| c + 1)
-//         .or(Some(0));
-
-//     result.and_then(|idx| ERRORS_QUEUE.save(store, idx, &error_msg).ok())
-// }
-
-/// a struct into which to decode the thing
+/// Struct fetched from query register reply
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ReplyId {
     pub id: u64,
-    // add the other fields if you need them
 }

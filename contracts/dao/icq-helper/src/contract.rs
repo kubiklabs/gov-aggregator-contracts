@@ -2,19 +2,22 @@ use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env,
-    MessageInfo, Response, StdError, StdResult, CosmosMsg, SubMsg, Reply,
+    MessageInfo, Response, StdError, StdResult, SubMsg, Reply, Addr,
 };
 use cw2::set_contract_version;
+use cw_utils::ParseReplyError;
 use crate::error::ContractError;
+use prost::Message as ProstMessage;
 // use neutron_sdk::interchain_txs::helpers::{
 //     decode_acknowledgement_response, decode_message_response
 // };
 // use neutron_sdk::interchain_txs::helpers::get_port_id;
-use prost::Message as ProstMessage;
-use cw_utils::{parse_reply_execute_data, ParseReplyError};
 
 use crate::msg::{ExecuteMsg, GetRecipientTxsResponse, InstantiateMsg, MigrateMsg, QueryMsg};
-use crate::state::{Transfer, RECIPIENT_TXS, TRANSFERS, BALANCE_QUERY_REPLY_ID, ReplyId};
+use crate::state::{
+    ReplyId, BALANCE_QUERY_ID,
+    Transfer, RECIPIENT_TXS, TRANSFERS,BALANCE_QUERY_REPLY_ID, BALANCE_QUERY_QUEUE, DELEGATION_USER_QUERY_REPLY_ID, DELEGATION_USER_QUERY_QUEUE, DELEGATION_USER_QUERY_ID,
+};
 use neutron_sdk::bindings::msg::NeutronMsg;
 use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
 use neutron_sdk::bindings::types::{Height, KVKey};
@@ -29,7 +32,7 @@ use neutron_sdk::interchain_queries::v045::{
     new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg,
     new_register_transfers_query_msg,
 };
-use neutron_sdk::sudo::msg::{SudoMsg, RequestPacket};
+use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
 
 use neutron_sdk::interchain_queries::types::{
@@ -37,12 +40,6 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
 use serde_json_wasm;
-
-/// for reply parsing for ICQ registry
-// Protobuf wire types (https://developers.google.com/protocol-buffers/docs/encoding)
-const WIRE_TYPE_LENGTH_DELIMITED: u8 = 2;
-// Up to 9 bytes of varints as a practical limit (https://github.com/multiformats/unsigned-varint#practical-maximum-of-9-bytes-for-security)
-const VARINT_MAX_BYTES: usize = 9;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
 const MAX_ALLOWED_TRANSFER: u64 = 20000;
@@ -65,8 +62,8 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
-    _deps: DepsMut<NeutronQuery>,
-    _env: Env,
+    deps: DepsMut<NeutronQuery>,
+    env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> NeutronResult<Response<NeutronMsg>> {
@@ -77,6 +74,8 @@ pub fn execute(
             denom,
             update_period,
         } => register_balance_query(
+            deps,
+            env,
             connection_id,
             addr,
             denom,
@@ -106,7 +105,14 @@ pub fn execute(
             delegator,
             validators,
             update_period,
-        } => register_delegations_query(connection_id, delegator, validators, update_period),
+        } => register_delegations_query(
+            deps,
+            env,
+            connection_id,
+            delegator,
+            validators,
+            update_period,
+        ),
         ExecuteMsg::RegisterTransfersQuery {
             connection_id,
             recipient,
@@ -124,17 +130,27 @@ pub fn execute(
 }
 
 pub fn register_balance_query(
+    deps: DepsMut<NeutronQuery>,
+    _env: Env,
     connection_id: String,
     addr: String,
     denom: String,
     update_period: u64,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg = new_register_balance_query_msg(connection_id, addr, denom, update_period)?;
+    let msg = new_register_balance_query_msg(
+        connection_id,
+        addr.clone(),
+        denom,
+        update_period,
+    )?;
 
     let sub_msg = SubMsg::reply_on_success(
         msg,
         BALANCE_QUERY_REPLY_ID,
     );
+    let address = Addr::unchecked(addr);
+
+    BALANCE_QUERY_QUEUE.push_back(deps.storage, &address)?;
 
     Ok(Response::new()
         .add_submessage(sub_msg))
@@ -180,6 +196,8 @@ pub fn register_staking_validators_query(
 }
 
 pub fn register_delegations_query(
+    deps: DepsMut<NeutronQuery>,
+    _env: Env,
     connection_id: String,
     delegator: String,
     validators: Vec<String>,
@@ -187,12 +205,21 @@ pub fn register_delegations_query(
 ) -> NeutronResult<Response<NeutronMsg>> {
     let msg = new_register_delegator_delegations_query_msg(
         connection_id,
-        delegator,
+        delegator.clone(),
         validators,
         update_period,
     )?;
 
-    Ok(Response::new().add_message(msg))
+    let sub_msg = SubMsg::reply_on_success(
+        msg,
+        DELEGATION_USER_QUERY_REPLY_ID,
+    );
+    let address = Addr::unchecked(delegator);
+
+    DELEGATION_USER_QUERY_QUEUE.push_back(deps.storage, &address)?;
+
+    Ok(Response::new()
+        .add_submessage(sub_msg))
 }
 
 pub fn register_transfers_query(
@@ -235,7 +262,9 @@ pub fn remove_interchain_query(query_id: u64) -> NeutronResult<Response<NeutronM
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         //TODO: check if query.result.height is too old (for all interchain queries)
-        QueryMsg::Balance { query_id } => Ok(to_binary(&query_balance(deps, env, query_id)?)?),
+        QueryMsg::Balance {
+            address,
+        } => query_address_balance(deps, env, address),
         QueryMsg::BankTotalSupply { query_id } => {
             Ok(to_binary(&query_bank_total(deps, env, query_id)?)?)
         }
@@ -248,9 +277,9 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
         QueryMsg::GovernmentProposals { query_id } => Ok(to_binary(&query_government_proposals(
             deps, env, query_id,
         )?)?),
-        QueryMsg::GetDelegations { query_id } => {
-            Ok(to_binary(&query_delegations(deps, env, query_id)?)?)
-        }
+        QueryMsg::GetDelegations {
+            address,
+        } => query_address_delegations(deps, env, address),
         QueryMsg::GetRegisteredQuery { query_id } => {
             Ok(to_binary(&get_registered_query(deps, query_id)?)?)
         }
@@ -258,7 +287,42 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
     }
 }
 
-fn query_recipient_txs(deps: Deps<NeutronQuery>, recipient: String) -> NeutronResult<Binary> {
+fn query_address_balance(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    address: Addr,
+) -> NeutronResult<Binary> {
+    // get query_id from address for balance query
+    let registered_query_id = BALANCE_QUERY_ID.load(deps.storage, address)?;
+
+    let query_balance = query_balance(
+        deps,
+        env, 
+        registered_query_id,
+    )?;
+    Ok(to_binary(&query_balance)?)
+}
+
+fn query_address_delegations(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    address: Addr,
+) -> NeutronResult<Binary> {
+    // get query_id from address for balance query
+    let registered_query_id = DELEGATION_USER_QUERY_ID.load(deps.storage, address)?;
+
+    let query_delegation_user = query_delegations(
+        deps,
+        env, 
+        registered_query_id,
+    )?;
+    Ok(to_binary(&query_delegation_user)?)
+}
+
+fn query_recipient_txs(
+    deps: Deps<NeutronQuery>,
+    recipient: String,
+) -> NeutronResult<Binary> {
     let txs = RECIPIENT_TXS
         .load(deps.storage, &recipient)
         .unwrap_or_default();
@@ -438,13 +502,6 @@ pub fn reply(
 ) -> Result<Response<NeutronMsg>, ContractError> {
     match msg.id {
         BALANCE_QUERY_REPLY_ID => {
-            deps.api.debug(
-                format!(
-                    "WASMDEBUG: query create msg received: {:?}",
-                    msg,
-                )
-                .as_str(),
-            );
             let data = msg
                 .result
                 .into_result()
@@ -454,25 +511,35 @@ pub fn reply(
 
             let reply_id= serde_json_wasm::from_slice::<ReplyId>(data.as_slice()).unwrap();
             let id_value: u64 = reply_id.id;
-            // let mut vec_data = (&data.0).to_vec();
-            // let inner_data = parse_protobuf_string(&mut vec_data, 0)?;
 
-            // let res = parse_reply_execute_data(msg)?;
-            deps.api.debug(
-                format!(
-                    "WASMDEBUG: query create res inner_data: {:?}",
-                    id_value,
-                )
-                .as_str(),
-            );
-            // let voting_registry_addr = deps.api.addr_validate(&res.contract_address)?;
+            // read the front of balance query address queue
+            if let Some(corresponding_address) = BALANCE_QUERY_QUEUE.pop_front(deps.storage)? {
+                BALANCE_QUERY_ID.save(deps.storage, corresponding_address, &id_value)?;
+            }
 
-            // VOTING_REGISTRY_MODULE.save(deps.storage, &voting_registry_addr)?;
+            Ok(Response::default()
+                .add_attribute("balance_query_reply_id", id_value.to_string()))
+        }
+        DELEGATION_USER_QUERY_REPLY_ID => {
+            let data = msg
+                .result
+                .into_result()
+                .map_err(ParseReplyError::SubMsgFailure)?
+                .data
+                .ok_or_else(|| ParseReplyError::ParseFailure("Missing reply data".to_owned()))?;
 
-            Ok(Response::default())
-                // .add_attribute("voting_registry_module", voting_registry_addr))
+            let reply_id= serde_json_wasm::from_slice::<ReplyId>(data.as_slice()).unwrap();
+            let id_value: u64 = reply_id.id;
+
+            // read the front of delegation user query address queue
+            if let Some(corresponding_address) = DELEGATION_USER_QUERY_QUEUE.pop_front(deps.storage)? {
+                DELEGATION_USER_QUERY_ID.save(deps.storage, corresponding_address, &id_value)?;
+            }
+
+            Ok(Response::default()
+                .add_attribute("delegation_user_query_reply_id", id_value.to_string()))
         }
         // _ => Err(ContractError::UnknownReplyID {}),
-        _ => Ok(Response::default()),   // Replace with err
+        _ => Ok(Response::default()),   // TODO: Replace with err
     }
 }
