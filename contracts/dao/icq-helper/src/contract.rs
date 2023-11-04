@@ -16,7 +16,7 @@ use prost::Message as ProstMessage;
 use crate::msg::{ExecuteMsg, GetRecipientTxsResponse, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::state::{
     ReplyId, BALANCE_QUERY_ID,
-    Transfer, RECIPIENT_TXS, TRANSFERS,BALANCE_QUERY_REPLY_ID, BALANCE_QUERY_QUEUE, DELEGATION_USER_QUERY_REPLY_ID, DELEGATION_USER_QUERY_QUEUE, DELEGATION_USER_QUERY_ID,
+    Transfer, RECIPIENT_TXS, TRANSFERS,BALANCE_QUERY_REPLY_ID, BALANCE_QUERY_QUEUE, DELEGATION_USER_QUERY_REPLY_ID, DELEGATION_USER_QUERY_QUEUE, DELEGATION_USER_QUERY_ID, TRANSFERS_TX_QUERY_REPLY_ID, TRANSFERS_TX_QUERY_QUEUE,
 };
 use neutron_sdk::bindings::msg::NeutronMsg;
 use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
@@ -118,7 +118,14 @@ pub fn execute(
             recipient,
             update_period,
             min_height,
-        } => register_transfers_query(connection_id, recipient, update_period, min_height),
+        } => register_transfers_query(
+            deps,
+            env,
+            connection_id,
+            recipient,
+            update_period,
+            min_height,
+        ),
         ExecuteMsg::UpdateInterchainQuery {
             query_id,
             new_keys,
@@ -223,15 +230,30 @@ pub fn register_delegations_query(
 }
 
 pub fn register_transfers_query(
+    deps: DepsMut<NeutronQuery>,
+    _env: Env,
     connection_id: String,
     recipient: String,
     update_period: u64,
     min_height: Option<u64>,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg =
-        new_register_transfers_query_msg(connection_id, recipient, update_period, min_height)?;
+    let msg = new_register_transfers_query_msg(
+        connection_id,
+        recipient.clone(),
+        update_period,
+        min_height,
+    )?;
 
-    Ok(Response::new().add_message(msg))
+    let sub_msg = SubMsg::reply_on_success(
+        msg,
+        TRANSFERS_TX_QUERY_REPLY_ID,
+    );
+    let address = Addr::unchecked(recipient);
+
+    TRANSFERS_TX_QUERY_QUEUE.push_back(deps.storage, &address)?;
+
+    Ok(Response::new()
+        .add_submessage(sub_msg))
 }
 
 pub fn update_interchain_query(
@@ -369,8 +391,10 @@ pub fn sudo_tx_query_result(
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
 
     // Get the registered query by ID and retrieve the raw query string
-    let registered_query: QueryRegisteredQueryResponse =
-        get_registered_query(deps.as_ref(), query_id)?;
+    let registered_query = get_registered_query(
+        deps.as_ref(),
+        query_id,
+    )?;
     let transactions_filter = registered_query.registered_query.transactions_filter;
 
     #[allow(clippy::match_single_binding)]
@@ -381,13 +405,17 @@ pub fn sudo_tx_query_result(
     // TODO: come up with solution to determine transactions filter type
     match registered_query.registered_query.query_type {
         _ => {
-            // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
+            // For transfer queries, query data looks like
+            // `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
                 serde_json_wasm::from_str(transactions_filter.as_str())?;
 
             let recipient = query_data
                 .iter()
-                .find(|x| x.field == RECIPIENT_FIELD && x.op == TransactionFilterOp::Eq)
+                .find(
+                    |x| x.field == RECIPIENT_FIELD
+                    && x.op == TransactionFilterOp::Eq
+                )
                 .map(|x| match &x.value {
                     TransactionFilterValue::String(v) => v.as_str(),
                     _ => "",

@@ -7,11 +7,13 @@ pub type Recipient = str;
 
 pub const BALANCE_QUERY_REPLY_ID: u64 = 0;
 pub const DELEGATION_USER_QUERY_REPLY_ID: u64 = 1;
+pub const TRANSFERS_TX_QUERY_REPLY_ID: u64 = 2;
 // pub const VOTE_MODULE_UPDATE_REPLY_ID: u64 = 2;
 
 /// maps remote address with interchain query_id
 pub const BALANCE_QUERY_ID: Map<Addr, u64> = Map::new("balance_ids");
 pub const DELEGATION_USER_QUERY_ID: Map<Addr, u64> = Map::new("delegation_user_ids");
+pub const TRANSFERS_TX_QUERY_ID: Map<Addr, u64> = Map::new("transfers_tx_ids");
 
 /// contains all transfers mapped by a recipient address observed by the contract.
 pub const RECIPIENT_TXS: Map<&Recipient, Vec<Transfer>> = Map::new("recipient_txs");
@@ -24,6 +26,7 @@ pub const TRANSFERS: Item<u64> = Item::new("transfers");
 /// but works fine if only one query created per txn
 pub const BALANCE_QUERY_QUEUE: Deque<Addr> = Deque::new("balance_query_queue");
 pub const DELEGATION_USER_QUERY_QUEUE: Deque<Addr> = Deque::new("delegation_user_query_queue");
+pub const TRANSFERS_TX_QUERY_QUEUE: Deque<Addr> = Deque::new("transfers_tx_query_queue");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Transfer {
