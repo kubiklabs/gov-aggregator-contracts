@@ -3,7 +3,6 @@
 ## 1. Abstract
 PAIDs(Permissionless aggregated interchain Dao) are interchain DAOs to aggregate the funds of community pools of multiple chains in order to make aggregated decision making for common goals.
 
-<!-- Community pools on multiple cosmos chains can aggregate a portion of their funds into a common pool and collectively decide on how to spend the collective funds and stakers of each chain can reuse their staked voting power to vote in this DAO removing any additional friction for community pool voters. -->
 Within the Cosmos ecosystem, community pools in different chains can pool a portion of their resources into a central fund, enabling them to jointly determine how to allocate these pooled resources. Additionally, individuals who have staked tokens in each chain can use their staking power within this DAO. This eliminates any extra obstacles for voters from community pools, streamlining the decision-making process.
 
 ## 2. Problem Statement
@@ -40,11 +39,32 @@ The core contracts are as follows:
 
 1. **dao_core**: This contract is the core module of ADAO. It handles management of voting power aided by voting module,proposal modules,ICA helper module, executes messages. It holds the DAO's treasury and tracks the % split of each chain in the DAO.
 2. **Voting module**: Helps in voting for proposal using staked assets on remote chains.
-<!-- 3. **pre-propose**: Proposer will interact with this contract which will modify messages accordingly and call the **propose** contract. -->
 3. **Proposal module**: Helps create proposals with ICA messages embedded by default, vote is done by interacting with this contract and for passed proposal it will call core dao contract to execute the messages.
 4. **ICQ helper**: Does interchain queries on remote chains for staked assets, balances and unstaking/staking events. 
 5. **ICA helper**: Does the ICA transactions on remote chains and IBC transfers, e.g. creating commuity pool spend proposal, transferring funds from remote chain to the DAO treasury over IBC, sending the DAO treasury back to remote chain's community pool over IBC.
 
+## Key features
+
+In summary, the interchain DAO does following:
+
+1. Create CommunityPoolSpend proposals on any chain from Neutron using smart contracts and ICA over IBC
+2. Keep track of voting power of staked asset on any chain and report to Neutron, so that stakers of that chain can vote in this DAO withoout doing anything extra
+3. Transfer funds between DAO and remote chains over IBC
+
+## How we implemented
+
+1. The work uses DAO-DAO contracts as starting point
+2. Proposal module was modified to accomodate creating of ICA proposals
+3. Voting module was modified to accomodate tracking staked asset on remote chain as voting power
+4. DAO core module was modified to store split of multiple chains 
+5. ICA helper was created, that does the CommunityPoolSpend proposal, IBC asset transfers
+5. ICQ helper was created, that does the interchain queries for voting power, asset balances and staking/unstaking events
+
+## Future work
+
+1. Allow funds to be vested and based upon deliverables
+2. Allow Community pools to opt-out of a specific proposal
+3. Chains to have Veto power in voting
 
 ## 4. Code flow diagram
 
