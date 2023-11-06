@@ -230,7 +230,8 @@ const neutron_mainnet_accounts = [
 
 const networks = {
   neutron_localnet: {
-    endpoint: 'http://localhost:26657/',
+    // endpoint: 'http://localhost:26657/',
+    endpoint: 'http://45.250.253.23:26657/',
     chainId: 'neutron-test-1',
     accounts: neutron_localnet_accounts,
     fees: {
@@ -249,7 +250,8 @@ const networks = {
     },
   },
   gaia_localnet: {
-    endpoint: 'http://localhost:16657/',
+    // endpoint: 'http://localhost:16657/',
+    endpoint: 'http://45.250.253.23:16657/',
     chainId: 'gaia-test-2',
     accounts: gaia_localnet_accounts,
     fees: {
@@ -268,7 +270,8 @@ const networks = {
     },
   },
   juno_localnet: {
-    endpoint: 'http://localhost:36657/',
+    endpoint: 'http://45.250.253.23:36657/',
+    // endpoint: 'http://localhost:36657/',
     chainId: 'juno-test-3',
     accounts: juno_localnet_accounts,
     fees: {
