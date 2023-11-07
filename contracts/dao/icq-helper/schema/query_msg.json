@@ -171,6 +171,26 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_delegate_txs"
+      ],
+      "properties": {
+        "get_delegate_txs": {
+          "type": "object",
+          "required": [
+            "delegator"
+          ],
+          "properties": {
+            "delegator": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {

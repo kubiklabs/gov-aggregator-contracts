@@ -1,4 +1,5 @@
 use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
+use cosmos_sdk_proto::cosmos::staking::v1beta1::MsgDelegate;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env,
@@ -6,6 +7,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use cw_utils::ParseReplyError;
+use neutron_sdk::interchain_queries::v045::register_queries::new_register_delegate_query_msg;
 use crate::error::ContractError;
 use prost::Message as ProstMessage;
 // use neutron_sdk::interchain_txs::helpers::{
@@ -13,13 +15,15 @@ use prost::Message as ProstMessage;
 // };
 // use neutron_sdk::interchain_txs::helpers::get_port_id;
 
-use crate::msg::{ExecuteMsg, GetRecipientTxsResponse, InstantiateMsg, MigrateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, GetRecipientTxsResponse, InstantiateMsg, MigrateMsg, QueryMsg, GetDelegateTxsResponse};
 use crate::state::{
-    ReplyId, BALANCE_QUERY_ID,
-    Transfer, RECIPIENT_TXS, TRANSFERS,BALANCE_QUERY_REPLY_ID, BALANCE_QUERY_QUEUE, DELEGATION_USER_QUERY_REPLY_ID, DELEGATION_USER_QUERY_QUEUE, DELEGATION_USER_QUERY_ID, TRANSFERS_TX_QUERY_REPLY_ID, TRANSFERS_TX_QUERY_QUEUE,
+    ReplyId, BALANCE_QUERY_ID, DELEGATIONS_TX_QUERY_QUEUE,
+    Transfer, RECIPIENT_TXS, TRANSFERS,BALANCE_QUERY_REPLY_ID, BALANCE_QUERY_QUEUE,
+    DELEGATION_USER_QUERY_REPLY_ID, DELEGATION_USER_QUERY_QUEUE, DELEGATION_USER_QUERY_ID,
+    TRANSFERS_TX_QUERY_REPLY_ID, TRANSFERS_TX_QUERY_QUEUE, DELEGATIONS_TX_QUERY_REPLY_ID, Delegation, DELEGATE_TXS,
 };
 use neutron_sdk::bindings::msg::NeutronMsg;
-use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
+use neutron_sdk::bindings::query::NeutronQuery;
 use neutron_sdk::bindings::types::{Height, KVKey};
 use neutron_sdk::interchain_queries::get_registered_query;
 use neutron_sdk::interchain_queries::v045::queries::{
@@ -38,7 +42,7 @@ use neutron_sdk::{NeutronError, NeutronResult};
 use neutron_sdk::interchain_queries::types::{
     TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
-use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
+use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD, DELEGATOR_FIELD};
 use serde_json_wasm;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
@@ -47,6 +51,9 @@ const MAX_ALLOWED_MESSAGES: usize = 20;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-sdk__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+// TODO: move to neutron-sdk fork
+pub const COSMOS_SDK_DELEGATE_MSG_URL: &str = "/cosmos.staking.v1beta1.MsgDelegate";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -81,15 +88,6 @@ pub fn execute(
             denom,
             update_period,
         ),
-        ExecuteMsg::RegisterBankTotalSupplyQuery {
-            connection_id,
-            denoms,
-            update_period,
-        } => register_bank_total_supply_query(connection_id, denoms, update_period),
-        ExecuteMsg::RegisterDistributionFeePoolQuery {
-            connection_id,
-            update_period,
-        } => register_distribution_fee_pool_query(connection_id, update_period),
         ExecuteMsg::RegisterGovernmentProposalsQuery {
             connection_id,
             proposals_ids,
@@ -123,6 +121,19 @@ pub fn execute(
             env,
             connection_id,
             recipient,
+            update_period,
+            min_height,
+        ),
+        ExecuteMsg::RegisterDelegationsQuery {
+            connection_id,
+            delegator,
+            update_period,
+            min_height,
+        } => register_delegations_tx_query(
+            deps,
+            env,
+            connection_id,
+            delegator,
             update_period,
             min_height,
         ),
@@ -256,6 +267,33 @@ pub fn register_transfers_query(
         .add_submessage(sub_msg))
 }
 
+pub fn register_delegations_tx_query(
+    deps: DepsMut<NeutronQuery>,
+    _env: Env,
+    connection_id: String,
+    delegator: String,
+    update_period: u64,
+    min_height: Option<u64>,
+) -> NeutronResult<Response<NeutronMsg>> {
+    let msg = new_register_delegate_query_msg(
+        connection_id,
+        delegator.clone(),
+        update_period,
+        min_height,
+    )?;
+
+    let sub_msg = SubMsg::reply_on_success(
+        msg,
+        DELEGATIONS_TX_QUERY_REPLY_ID,
+    );
+    let address = Addr::unchecked(delegator);
+
+    DELEGATIONS_TX_QUERY_QUEUE.push_back(deps.storage, &address)?;
+
+    Ok(Response::new()
+        .add_submessage(sub_msg))
+}
+
 pub fn update_interchain_query(
     query_id: u64,
     new_keys: Option<Vec<KVKey>>,
@@ -306,6 +344,7 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
             Ok(to_binary(&get_registered_query(deps, query_id)?)?)
         }
         QueryMsg::GetRecipientTxs { recipient } => query_recipient_txs(deps, recipient),
+        QueryMsg::GetDelegateTxs { delegator } => query_delegate_txs(deps, delegator),
     }
 }
 
@@ -351,6 +390,17 @@ fn query_recipient_txs(
     Ok(to_binary(&GetRecipientTxsResponse { transfers: txs })?)
 }
 
+fn query_delegate_txs(
+    deps: Deps<NeutronQuery>,
+    delegator: String,
+) -> NeutronResult<Binary> {
+    // TODO: replace with delegate txns
+    let txs = DELEGATE_TXS
+        .load(deps.storage, &delegator)
+        .unwrap_or_default();
+    Ok(to_binary(&GetDelegateTxsResponse { delegations: txs })?)
+}
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     deps.api.debug("WASMDEBUG: migrate");
@@ -390,12 +440,28 @@ pub fn sudo_tx_query_result(
     let tx: TxRaw = TxRaw::decode(data.as_slice())?;
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
 
+    deps.api.debug(
+        format!(
+            "WASMDEBUG: sudo_tx_query_result received; body: {:?}",
+            body,
+        )
+        .as_str(),
+    );
+
     // Get the registered query by ID and retrieve the raw query string
     let registered_query = get_registered_query(
         deps.as_ref(),
         query_id,
     )?;
     let transactions_filter = registered_query.registered_query.transactions_filter;
+
+    deps.api.debug(
+        format!(
+            "WASMDEBUG: sudo_tx_query_result received; transactions_filter: {:?}",
+            transactions_filter,
+        )
+        .as_str(),
+    );
 
     #[allow(clippy::match_single_binding)]
     // Depending of the query type, check the transaction data to see whether is satisfies
@@ -410,10 +476,18 @@ pub fn sudo_tx_query_result(
             let query_data: Vec<TransactionFilterItem> =
                 serde_json_wasm::from_str(transactions_filter.as_str())?;
 
+            deps.api.debug(
+                format!(
+                    "WASMDEBUG: sudo_tx_query_result received; query_data: {:?}",
+                    query_data,
+                )
+                .as_str(),
+            );
+
             let recipient = query_data
                 .iter()
                 .find(
-                    |x| x.field == RECIPIENT_FIELD
+                    |x| x.field == DELEGATOR_FIELD  // TODO: separate from transfer
                     && x.op == TransactionFilterOp::Eq
                 )
                 .map(|x| match &x.value {
@@ -422,25 +496,25 @@ pub fn sudo_tx_query_result(
                 })
                 .unwrap_or("");
 
-            let deposits = recipient_deposits_from_tx_body(body, recipient)?;
-            // If we didn't find a Send message with the correct recipient, return an error, and
+            let delegations = delegator_deposits_from_tx_body(body, recipient)?;
+            // If we didn't find a Delegate message with the correct recipient, return an error, and
             // this query result will be rejected by Neutron: no data will be saved to state.
-            if deposits.is_empty() {
+            if delegations.is_empty() {
                 return Err(NeutronError::Std(StdError::generic_err(
-                    "failed to find a matching transaction message",
+                    "failed to find a matching Delegate transaction message",
                 )));
             }
 
-            let mut stored_transfers: u64 = TRANSFERS.load(deps.storage).unwrap_or_default();
-            stored_transfers += deposits.len() as u64;
-            TRANSFERS.save(deps.storage, &stored_transfers)?;
+            let mut stored_delegations: u64 = TRANSFERS.load(deps.storage).unwrap_or_default();
+            stored_delegations += delegations.len() as u64;
+            TRANSFERS.save(deps.storage, &stored_delegations)?;
 
-            check_deposits_size(&deposits)?;
-            let mut stored_deposits: Vec<Transfer> = RECIPIENT_TXS
+            check_delegations_size(&delegations)?;
+            let mut stored_deposits: Vec<Delegation> = DELEGATE_TXS
                 .load(deps.storage, recipient)
                 .unwrap_or_default();
-            stored_deposits.extend(deposits);
-            RECIPIENT_TXS.save(deps.storage, recipient, &stored_deposits)?;
+            stored_deposits.extend(delegations);
+            DELEGATE_TXS.save(deps.storage, recipient, &stored_deposits)?;
             Ok(Response::new())
         }
     }
@@ -478,6 +552,38 @@ fn recipient_deposits_from_tx_body(
     Ok(deposits)
 }
 
+/// parses tx body and retrieves transactions to the given delegator.
+fn delegator_deposits_from_tx_body(
+    tx_body: TxBody,
+    delegator: &str,
+) -> NeutronResult<Vec<Delegation>> {
+    let mut delegations: Vec<Delegation> = vec![];
+    // Only handle up to MAX_ALLOWED_MESSAGES messages, everything else
+    // will be ignored to prevent 'out of gas' conditions.
+    // Note: in real contracts you will have to somehow save ignored
+    // data in order to handle it later.
+    for msg in tx_body.messages.iter().take(MAX_ALLOWED_MESSAGES) {
+        // Skip all messages in this transaction that are not Delegate messages.
+        if msg.type_url != *COSMOS_SDK_DELEGATE_MSG_URL.to_string() {
+            continue;
+        }
+
+        // Parse a Delegate message and check that it has the required delegator.
+        let delegate_msg: MsgDelegate = MsgDelegate::decode(msg.value.as_slice())?;
+        if delegate_msg.delegator_address == delegator {
+            while let Some(ref coin) = delegate_msg.amount {
+                delegations.push(Delegation {
+                    delegator: delegate_msg.delegator_address.clone(),
+                    amount: coin.amount.clone(),
+                    denom: coin.denom.clone(),
+                    validator: delegate_msg.validator_address.clone(),
+                });
+            }
+        }
+    }
+    Ok(delegations)
+}
+
 // checks whether there are deposits that are greater then MAX_ALLOWED_TRANSFER.
 fn check_deposits_size(deposits: &Vec<Transfer>) -> StdResult<()> {
     for deposit in deposits {
@@ -493,6 +599,29 @@ fn check_deposits_size(deposits: &Vec<Transfer>) -> StdResult<()> {
             Err(error) => {
                 return Err(StdError::generic_err(format!(
                     "failed to cast transfer amount to u64: {}",
+                    error
+                )));
+            }
+        };
+    }
+    Ok(())
+}
+
+// checks whether there are delegations that are greater then MAX_ALLOWED_TRANSFER.
+fn check_delegations_size(delegations: &Vec<Delegation>) -> StdResult<()> {
+    for delegation in delegations {
+        match delegation.amount.parse::<u64>() {
+            Ok(amount) => {
+                if amount > MAX_ALLOWED_TRANSFER {
+                    return Err(StdError::generic_err(format!(
+                        "maximum allowed delegation is {}",
+                        MAX_ALLOWED_TRANSFER
+                    )));
+                };
+            }
+            Err(error) => {
+                return Err(StdError::generic_err(format!(
+                    "failed to cast delegation amount to u64: {}",
                     error
                 )));
             }

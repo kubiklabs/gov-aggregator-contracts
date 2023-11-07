@@ -1,4 +1,4 @@
-use crate::state::Transfer;
+use crate::state::{Transfer, Delegation};
 use cosmwasm_std::Addr;
 use neutron_sdk::bindings::types::KVKey;
 use schemars::JsonSchema;
@@ -16,12 +16,9 @@ pub enum ExecuteMsg {
         addr: String,
         denom: String,
     },
-    RegisterBankTotalSupplyQuery {
-        connection_id: String,
-        update_period: u64,
-        denoms: Vec<String>,
-    },
-    RegisterDistributionFeePoolQuery {
+    RegisterDelegatorDelegationsQuery {
+        delegator: String,
+        validators: Vec<String>,
         connection_id: String,
         update_period: u64,
     },
@@ -41,11 +38,11 @@ pub enum ExecuteMsg {
         recipient: String,
         min_height: Option<u64>,
     },
-    RegisterDelegatorDelegationsQuery {
-        delegator: String,
-        validators: Vec<String>,
+    RegisterDelegationsQuery {
         connection_id: String,
         update_period: u64,
+        delegator: String,
+        min_height: Option<u64>,
     },
     UpdateInterchainQuery {
         query_id: u64,
@@ -69,12 +66,19 @@ pub enum QueryMsg {
     GetDelegations { address: Addr },
     GetRegisteredQuery { query_id: u64 },
     GetRecipientTxs { recipient: String },
+    GetDelegateTxs { delegator: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct GetRecipientTxsResponse {
     pub transfers: Vec<Transfer>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct GetDelegateTxsResponse {
+    pub delegations: Vec<Delegation>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

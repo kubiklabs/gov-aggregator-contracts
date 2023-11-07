@@ -39,56 +39,34 @@
     {
       "type": "object",
       "required": [
-        "register_bank_total_supply_query"
+        "register_delegator_delegations_query"
       ],
       "properties": {
-        "register_bank_total_supply_query": {
+        "register_delegator_delegations_query": {
           "type": "object",
           "required": [
             "connection_id",
-            "denoms",
-            "update_period"
+            "delegator",
+            "update_period",
+            "validators"
           ],
           "properties": {
             "connection_id": {
               "type": "string"
             },
-            "denoms": {
+            "delegator": {
+              "type": "string"
+            },
+            "update_period": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "validators": {
               "type": "array",
               "items": {
                 "type": "string"
               }
-            },
-            "update_period": {
-              "type": "integer",
-              "format": "uint64",
-              "minimum": 0.0
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "required": [
-        "register_distribution_fee_pool_query"
-      ],
-      "properties": {
-        "register_distribution_fee_pool_query": {
-          "type": "object",
-          "required": [
-            "connection_id",
-            "update_period"
-          ],
-          "properties": {
-            "connection_id": {
-              "type": "string"
-            },
-            "update_period": {
-              "type": "integer",
-              "format": "uint64",
-              "minimum": 0.0
             }
           }
         }
@@ -204,16 +182,15 @@
     {
       "type": "object",
       "required": [
-        "register_delegator_delegations_query"
+        "register_delegations_query"
       ],
       "properties": {
-        "register_delegator_delegations_query": {
+        "register_delegations_query": {
           "type": "object",
           "required": [
             "connection_id",
             "delegator",
-            "update_period",
-            "validators"
+            "update_period"
           ],
           "properties": {
             "connection_id": {
@@ -222,16 +199,18 @@
             "delegator": {
               "type": "string"
             },
+            "min_height": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
             "update_period": {
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
-            },
-            "validators": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           }
         }

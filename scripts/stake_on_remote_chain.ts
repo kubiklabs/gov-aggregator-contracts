@@ -38,7 +38,7 @@ async function run () {
   const stakeResponse = await client.delegateTokens(
     remoteAccount,
     remoteValidatorOne,
-    { amount: '1000000000', denom: remoteDenom } as Coin,
+    { amount: '2000', denom: remoteDenom } as Coin,
     {
       amount: [{ amount: "250000", denom: "uatom" }],
       gas: "1000000",

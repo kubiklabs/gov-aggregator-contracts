@@ -31,7 +31,7 @@ async function run () {
   const sendResponse = await client.sendTokens(
     contract_owner.account.address,
     interchainAccount,
-    [{ amount: '15000000000', denom: remoteDenom } as Coin],
+    [{ amount: '15000', denom: remoteDenom } as Coin],
     {
       amount: [{ amount: "250000", denom: "uatom" }],
       gas: "1000000",

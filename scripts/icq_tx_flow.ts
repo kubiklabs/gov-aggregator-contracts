@@ -48,7 +48,7 @@ async function run () {
   console.log("All contract instance created successfully");
 
   // Register transfer txns query
-  const register_transfers_res = await icq_helper.registerTransfersQuery(
+  const register_transfers_res = await icq_helper.registerDelegationsQuery(
     {
       account: contract_owner,
       customFees: {
@@ -60,18 +60,18 @@ async function run () {
       ]
     },
     {
-      recipient: remoteAccount,
+      delegator: remoteAccount,
       connectionId: connectionId,
-      minHeight: 1000,
+      minHeight: 20,
       updatePeriod: 5, // 5 blocks update period
     }
   );
   console.log(chalk.cyan("Response: "), JSON.stringify(register_transfers_res, null, 2));
 
-  await sleep(10);  // wait for query to be registered
+  await sleep(40);  // wait for query to be registered
 
   // Query transfer txns
-  const remote_trasfer_txns = await icq_helper.getRecipientTxs({ recipient: remoteAccount });
+  const remote_trasfer_txns = await icq_helper.getDelegateTxs({ delegator: remoteAccount });
   console.log(chalk.cyan("Response: "), JSON.stringify(remote_trasfer_txns, null, 2));
 }
 
