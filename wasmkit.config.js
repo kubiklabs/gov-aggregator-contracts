@@ -1,8 +1,203 @@
 const gaia_localnet_accounts = [
   {
     name: 'account_0',
+    address: 'cosmos1m9l358xunhhwds0568za49mzhvuxx9uxre5tud',
+    mnemonic: 'banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass'
+  },
+  {
+    name: 'account_1',
     address: 'cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw',
     mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
+  },
+  {
+    name: 'account_2',
+    address: 'cosmos14xcrdjwwxtf9zr7dvaa97wy056se6r5e8q68mw',
+    mnemonic: 'obscure canal because tomorrow tribe sibling describe satoshi kiwi upgrade bless empty math trend erosion oblige donate label birth chronic hazard ensure wreck shine'
+  },
+  {
+    name: 'account_3',
+    address: 'cosmos1n2s7z5plhqy3uycervl2mzhyeqlpx6f4mejpgt',
+    mnemonic: 'orange shaft abandon find six fluid release picnic library waste inflict velvet physical clerk manual rookie cargo gown vendor museum dove brain runway people'
+  },
+  {
+    name: 'account_4',
+    address: 'cosmos1t0d2pgp0qzl8xk9q2vsqsy6sdm6t6ay4pj5kv8',
+    mnemonic: 'labor add oven alone pride disease imitate february smooth pudding grain seat slim slice gown matrix citizen extra vessel increase release settle boring chair'
+  },
+  {
+    name: 'account_5',
+    address: 'cosmos1e73jghyrfhksn2lfw8alnmsmt9lp2y7znxl329',
+    mnemonic: 'member deal deputy vague embody truck ozone pull unique picture say tool rabbit ripple raise garlic point thunder level clinic toddler avocado knee maze'
+  },
+  {
+    name: 'account_6',
+    address: 'cosmos1p46rjmu8lqxppyljqnp4vyphx8v6uz0jzmy83q',
+    mnemonic: 'tower crazy oblige owner chimney snow blanket sunny clown hotel exit raise circle cage stumble crush quiz scorpion broken door drill blue dance alley'
+  },
+  {
+    name: 'account_7',
+    address: 'cosmos1vs6chqj4s3vpcgwm6ja2m5sa3l3q4k5thjn83d',
+    mnemonic: 'major sorry fine subject thumb camp vintage jacket valley hold bronze thought crime slow point either cycle supply buzz major style powder effort chief'
+  },
+  {
+    name: 'account_8',
+    address: 'cosmos1vsw47sxf0ngmyjysek6e2efsskt66zt84k93y6',
+    mnemonic: 'corn order odor cart relax practice wrestle gravity ankle category exile surface mule clay message quote cushion possible aspect ensure hazard slow torch repeat'
+  },
+  {
+    name: 'account_9',
+    address: 'cosmos1fedsdf6d5jt86t6dqmk9yrwrgmkd074c7p95u0',
+    mnemonic: 'symptom camera collect dismiss screen wagon club maid math slim awkward joy human inch orbit sing display nice gentle gauge object pride salmon forget'
+  },
+  {
+    name: 'account_10',
+    address: 'cosmos1cdkjxu7h8mxm9njma5m0m6crfnfd9x564yldh6',
+    mnemonic: 'half sauce cupboard card audit fitness replace entire crack exile audit brave delay exhaust embark like afraid mountain critic custom glimpse load grunt ugly'
+  },
+  {
+    name: 'account_11',
+    address: 'cosmos19uav3ef4m6l34av4czysky4xj4cp9pvs543e9j',
+    mnemonic: 'region sure orchard robust asset maximum output genre stand hurt dilemma disease accuse truth cargo approve foster pear two great bonus life bracket brief'
+  },
+  {
+    name: 'account_12',
+    address: 'cosmos1j9r9emufvyka8dzgjjc0w40gg0pg4f5wmv6tx7',
+    mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
+  }
+];
+const juno_localnet_accounts = [
+  {
+    name: 'account_0',
+    address: 'juno1m9l358xunhhwds0568za49mzhvuxx9ux4thsm3',
+    mnemonic: 'banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass'
+  },
+  {
+    name: 'account_1',
+    address: 'juno10h9stc5v6ntgeygf5xf945njqq5h32r58wr8tj',
+    mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
+  },
+  {
+    name: 'account_2',
+    address: 'juno14xcrdjwwxtf9zr7dvaa97wy056se6r5e3jeuuj',
+    mnemonic: 'obscure canal because tomorrow tribe sibling describe satoshi kiwi upgrade bless empty math trend erosion oblige donate label birth chronic hazard ensure wreck shine'
+  },
+  {
+    name: 'account_3',
+    address: 'juno1n2s7z5plhqy3uycervl2mzhyeqlpx6f4dt360h',
+    mnemonic: 'orange shaft abandon find six fluid release picnic library waste inflict velvet physical clerk manual rookie cargo gown vendor museum dove brain runway people'
+  },
+  {
+    name: 'account_4',
+    address: 'juno1t0d2pgp0qzl8xk9q2vsqsy6sdm6t6ay4hqhdtm',
+    mnemonic: 'labor add oven alone pride disease imitate february smooth pudding grain seat slim slice gown matrix citizen extra vessel increase release settle boring chair'
+  },
+  {
+    name: 'account_5',
+    address: 'juno1e73jghyrfhksn2lfw8alnmsmt9lp2y7z95u2de',
+    mnemonic: 'member deal deputy vague embody truck ozone pull unique picture say tool rabbit ripple raise garlic point thunder level clinic toddler avocado knee maze'
+  },
+  {
+    name: 'account_6',
+    address: 'juno1p46rjmu8lqxppyljqnp4vyphx8v6uz0j5f8uku',
+    mnemonic: 'tower crazy oblige owner chimney snow blanket sunny clown hotel exit raise circle cage stumble crush quiz scorpion broken door drill blue dance alley'
+  },
+  {
+    name: 'account_7',
+    address: 'juno1vs6chqj4s3vpcgwm6ja2m5sa3l3q4k5tpqsuk3',
+    mnemonic: 'major sorry fine subject thumb camp vintage jacket valley hold bronze thought crime slow point either cycle supply buzz major style powder effort chief'
+  },
+  {
+    name: 'account_8',
+    address: 'juno1vsw47sxf0ngmyjysek6e2efsskt66zt8ryx2rx',
+    mnemonic: 'corn order odor cart relax practice wrestle gravity ankle category exile surface mule clay message quote cushion possible aspect ensure hazard slow torch repeat'
+  },
+  {
+    name: 'account_9',
+    address: 'juno1fedsdf6d5jt86t6dqmk9yrwrgmkd074cgnx0mn',
+    mnemonic: 'symptom camera collect dismiss screen wagon club maid math slim awkward joy human inch orbit sing display nice gentle gauge object pride salmon forget'
+  },
+  {
+    name: 'account_10',
+    address: 'juno1cdkjxu7h8mxm9njma5m0m6crfnfd9x56rkuksx',
+    mnemonic: 'half sauce cupboard card audit fitness replace entire crack exile audit brave delay exhaust embark like afraid mountain critic custom glimpse load grunt ugly'
+  },
+  {
+    name: 'account_11',
+    address: 'juno19uav3ef4m6l34av4czysky4xj4cp9pvsz8jzzw',
+    mnemonic: 'region sure orchard robust asset maximum output genre stand hurt dilemma disease accuse truth cargo approve foster pear two great bonus life bracket brief'
+  },
+  {
+    name: 'account_12',
+    address: 'juno1j9r9emufvyka8dzgjjc0w40gg0pg4f5wd7espz',
+    mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
+  },
+];
+
+const osmo_localnet_accounts = [
+  {
+    name: 'account_0',
+    address: 'osmo1m9l358xunhhwds0568za49mzhvuxx9uxtz8m2l',
+    mnemonic: 'banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass'
+  },
+  {
+    name: 'account_1',
+    address: 'osmo10h9stc5v6ntgeygf5xf945njqq5h32r5e8nv6u',
+    mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
+  },
+  {
+    name: 'account_2',
+    address: 'osmo14xcrdjwwxtf9zr7dvaa97wy056se6r5e0mfhdu',
+    mnemonic: 'obscure canal because tomorrow tribe sibling describe satoshi kiwi upgrade bless empty math trend erosion oblige donate label birth chronic hazard ensure wreck shine'
+  },
+  {
+    name: 'account_3',
+    address: 'osmo1n2s7z5plhqy3uycervl2mzhyeqlpx6f4nzp37e',
+    mnemonic: 'orange shaft abandon find six fluid release picnic library waste inflict velvet physical clerk manual rookie cargo gown vendor museum dove brain runway people'
+  },
+  {
+    name: 'account_4',
+    address: 'osmo1t0d2pgp0qzl8xk9q2vsqsy6sdm6t6ay4ff8x64',
+    mnemonic: 'labor add oven alone pride disease imitate february smooth pudding grain seat slim slice gown matrix citizen extra vessel increase release settle boring chair'
+  },
+  {
+    name: 'account_5',
+    address: 'osmo1e73jghyrfhksn2lfw8alnmsmt9lp2y7zmavpuh',
+    mnemonic: 'member deal deputy vague embody truck ozone pull unique picture say tool rabbit ripple raise garlic point thunder level clinic toddler avocado knee maze'
+  },
+  {
+    name: 'account_6',
+    address: 'osmo1p46rjmu8lqxppyljqnp4vyphx8v6uz0j2qhh8j',
+    mnemonic: 'tower crazy oblige owner chimney snow blanket sunny clown hotel exit raise circle cage stumble crush quiz scorpion broken door drill blue dance alley'
+  },
+  {
+    name: 'account_7',
+    address: 'osmo1vs6chqj4s3vpcgwm6ja2m5sa3l3q4k5tlfqh8l',
+    mnemonic: 'major sorry fine subject thumb camp vintage jacket valley hold bronze thought crime slow point either cycle supply buzz major style powder effort chief'
+  },
+  {
+    name: 'account_8',
+    address: 'osmo1vsw47sxf0ngmyjysek6e2efsskt66zt8adkpjg',
+    mnemonic: 'corn order odor cart relax practice wrestle gravity ankle category exile surface mule clay message quote cushion possible aspect ensure hazard slow torch repeat'
+  },
+  {
+    name: 'account_9',
+    address: 'osmo1fedsdf6d5jt86t6dqmk9yrwrgmkd074ck6ky2a',
+    mnemonic: 'symptom camera collect dismiss screen wagon club maid math slim awkward joy human inch orbit sing display nice gentle gauge object pride salmon forget'
+  },
+  {
+    name: 'account_10',
+    address: 'osmo1cdkjxu7h8mxm9njma5m0m6crfnfd9x56alvapg',
+    mnemonic: 'half sauce cupboard card audit fitness replace entire crack exile audit brave delay exhaust embark like afraid mountain critic custom glimpse load grunt ugly'
+  },
+  {
+    name: 'account_11',
+    address: 'osmo19uav3ef4m6l34av4czysky4xj4cp9pvsuwzfnq',
+    mnemonic: 'region sure orchard robust asset maximum output genre stand hurt dilemma disease accuse truth cargo approve foster pear two great bonus life bracket brief'
+  },
+  {
+    name: 'account_12',
+    address: 'osmo1j9r9emufvyka8dzgjjc0w40gg0pg4f5wnhfmsv',
+    mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   },
 ];
 
@@ -14,6 +209,7 @@ const neutron_testnet_accounts = [
   },
 ];
 
+// accounnt-0 receive atom and juno through ibc
 const neutron_localnet_accounts = [
   {
     name: 'account_0',
@@ -29,7 +225,57 @@ const neutron_localnet_accounts = [
     name: 'account_2',
     address: 'neutron14xcrdjwwxtf9zr7dvaa97wy056se6r5erln9pf',
     mnemonic: 'obscure canal because tomorrow tribe sibling describe satoshi kiwi upgrade bless empty math trend erosion oblige donate label birth chronic hazard ensure wreck shine'
-  }
+  },
+  {
+    name: 'account_3',
+    address: 'neutron1n2s7z5plhqy3uycervl2mzhyeqlpx6f4lxmrjv',
+    mnemonic: 'orange shaft abandon find six fluid release picnic library waste inflict velvet physical clerk manual rookie cargo gown vendor museum dove brain runway people'
+  },
+  {
+    name: 'account_4',
+    address: 'neutron1t0d2pgp0qzl8xk9q2vsqsy6sdm6t6ay49da5kq',
+    mnemonic: 'labor add oven alone pride disease imitate february smooth pudding grain seat slim slice gown matrix citizen extra vessel increase release settle boring chair'
+  },
+  {
+    name: 'account_5',
+    address: 'neutron1e73jghyrfhksn2lfw8alnmsmt9lp2y7zheknsz',
+    mnemonic: 'member deal deputy vague embody truck ozone pull unique picture say tool rabbit ripple raise garlic point thunder level clinic toddler avocado knee maze'
+  },
+  {
+    name: 'account_6',
+    address: 'neutron1p46rjmu8lqxppyljqnp4vyphx8v6uz0jxyd9t8',
+    mnemonic: 'tower crazy oblige owner chimney snow blanket sunny clown hotel exit raise circle cage stumble crush quiz scorpion broken door drill blue dance alley'
+  },
+  {
+    name: 'account_7',
+    address: 'neutron1vs6chqj4s3vpcgwm6ja2m5sa3l3q4k5tnd69t2',
+    mnemonic: 'major sorry fine subject thumb camp vintage jacket valley hold bronze thought crime slow point either cycle supply buzz major style powder effort chief'
+  },
+  {
+    name: 'account_8',
+    address: 'neutron1vsw47sxf0ngmyjysek6e2efsskt66zt83fvn7a',
+    mnemonic: 'corn order odor cart relax practice wrestle gravity ankle category exile surface mule clay message quote cushion possible aspect ensure hazard slow torch repeat'
+  },
+  {
+    name: 'account_9',
+    address: 'neutron1fedsdf6d5jt86t6dqmk9yrwrgmkd074c67vkxg',
+    mnemonic: 'symptom camera collect dismiss screen wagon club maid math slim awkward joy human inch orbit sing display nice gentle gauge object pride salmon forget'
+  },
+  {
+    name: 'account_10',
+    address: 'neutron1cdkjxu7h8mxm9njma5m0m6crfnfd9x563mk0da',
+    mnemonic: 'half sauce cupboard card audit fitness replace entire crack exile audit brave delay exhaust embark like afraid mountain critic custom glimpse load grunt ugly'
+  },
+  {
+    name: 'account_11',
+    address: 'neutron19uav3ef4m6l34av4czysky4xj4cp9pvss2cml4',
+    mnemonic: 'region sure orchard robust asset maximum output genre stand hurt dilemma disease accuse truth cargo approve foster pear two great bonus life bracket brief'
+  },
+  {
+    name: 'account_12',
+    address: 'neutron1j9r9emufvyka8dzgjjc0w40gg0pg4f5wlnnfue',
+    mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
+  },
 ];
 
 const neutron_mainnet_accounts = [
@@ -37,8 +283,9 @@ const neutron_mainnet_accounts = [
 
 const networks = {
   neutron_localnet: {
-    endpoint: 'http://localhost:26657/',
-    chainId: 'test-1',
+    // endpoint: 'http://localhost:26657/',
+    endpoint: 'http://45.250.253.23:26657/',
+    chainId: 'neutron-test-1',
     accounts: neutron_localnet_accounts,
     fees: {
       upload: {
@@ -56,8 +303,9 @@ const networks = {
     },
   },
   gaia_localnet: {
-    endpoint: 'http://localhost:16657/',
-    chainId: 'test-2',
+    // endpoint: 'http://localhost:16657/',
+    endpoint: 'http://45.250.253.23:16657/',
+    chainId: 'gaia-test-2',
     accounts: gaia_localnet_accounts,
     fees: {
       upload: {
@@ -70,6 +318,46 @@ const networks = {
       },
       exec: {
         amount: [{ amount: "250000", denom: "uatom" }],
+        gas: "1000000",
+      }
+    },
+  },
+  juno_localnet: {
+    endpoint: 'http://45.250.253.23:36657/',
+    // endpoint: 'http://localhost:36657/',
+    chainId: 'juno-test-3',
+    accounts: juno_localnet_accounts,
+    fees: {
+      upload: {
+        amount: [{ amount: "750000", denom: "ujuno" }],
+        gas: "3000000",
+      },
+      init: {
+        amount: [{ amount: "250000", denom: "ujuno" }],
+        gas: "1000000",
+      },
+      exec: {
+        amount: [{ amount: "250000", denom: "ujuno" }],
+        gas: "1000000",
+      }
+    },
+  },
+  osmo_localnet: {
+    endpoint: 'http://45.250.253.23:46657/',
+    // endpoint: 'http://localhost:46657/',
+    chainId: 'osmo-test-4',
+    accounts: osmo_localnet_accounts,
+    fees: {
+      upload: {
+        amount: [{ amount: "750000", denom: "uosmo" }],
+        gas: "3000000",
+      },
+      init: {
+        amount: [{ amount: "250000", denom: "uosmo" }],
+        gas: "1000000",
+      },
+      exec: {
+        amount: [{ amount: "250000", denom: "uosmo" }],
         gas: "1000000",
       }
     },
@@ -120,6 +408,8 @@ module.exports = {
     testnet: networks.neutron_testnet,
     localnet: networks.neutron_localnet,
     localgaia: networks.gaia_localnet,
+    localjuno: networks.juno_localnet,
+    localosmo: networks.osmo_localnet,
     mainnet: networks.neutron_mainnet,
   },
   localnetworks: {
@@ -141,7 +431,7 @@ module.exports = {
     timeout: 60000
   },
   rust: {
-    version: "1.68.2",
+    version: "1.68.0",
   },
   commands: {
     compile: "RUSTFLAGS='-C link-arg=-s' cargo build --release --target wasm32-unknown-unknown",
