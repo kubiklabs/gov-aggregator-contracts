@@ -16,44 +16,34 @@ function sleep(seconds: number) {
 async function run () {
   const runTs = String(new Date());
   const nativeDenom = "untrn";  // Neutron fee token
-  const atomDenom = "uatom";    // Cosmos hub fee token
   const osmoDenom = "uosmo";    // Osmosis fee token
   const junoDenom = "ujuno";    // Juno fee token
   const contract_owner = await getAccountByName("account_0");
 
-  const atomConnectionId = "connection-0";
   const osmoConnectionId = "connection-2";
   const junoConnectionId = "connection-1";
 
-  const atomChainId = "gaia-test-2";
   const osmoChainId = "osmo-test-4";
   const junoChainId = "juno-test-3";
 
-  const DaoName = "All Chains DAO";
-  const DaoDescription = "One DAO for all the chains connected to Neutron";
+  const DaoName = "CosmWasm DAO";
+  const DaoDescription = "DAO for all the CosmWasm chains connected to Neutron";
   const chainsList = [
-    {
-      chain_id: atomChainId,
-      connection_id: atomConnectionId,
-      stake: 40,
-    },
     {
       chain_id: osmoChainId,
       connection_id: osmoConnectionId,
-      stake: 30,
+      stake: 50,
     },
     {
       chain_id: junoChainId,
       connection_id: junoConnectionId,
-      stake: 30,
+      stake: 50,
     },
   ];
 
-  const interchainAccountAtom = "remote_account_atom";
   const interchainAccountOsmo = "remote_account_osmo";
   const interchainAccountJuno = "remote_account_juno";
 
-  const remoteValidatorAtom = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
   const remoteValidatorOsmo = "osmovaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zkc9nsx4";
   const remoteValidatorJuno = "junovaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zkrxahm9";
 
@@ -226,25 +216,6 @@ async function run () {
   ica_helper.instantiatedWithAddress(core_state.ica_helper);
   console.log(chalk.cyan("Updated ICA helper address: "), ica_helper.contractAddress);
 
-  // Register account on Gaia chain
-  const gaia_register_res = await ica_helper.register(
-    {
-      account: contract_owner,
-      customFees: {
-        amount: [{ amount: "125000", denom: nativeDenom }],
-        gas: "500000",
-      },
-      transferAmount: [ // fee for doing all following ICA txns, a bit more than min_fee
-        { amount: "500000", denom: nativeDenom }
-      ]
-    },
-    {
-      connectionId: atomConnectionId,
-      interchainAccountId: interchainAccountAtom,
-    }
-  );
-  console.log(chalk.cyan("Response: "), gaia_register_res);
-
   // Register account on Osmo chain
   const osmo_register_res = await ica_helper.register(
     {
@@ -284,19 +255,6 @@ async function run () {
   console.log(chalk.cyan("Response: "), juno_register_res);
 
   await sleep(10);  // wait for addr to be created
-
-  // Query interchain address Gaia
-  const atomAccountInfo = await ica_helper.interchainAccountAddress({
-    connectionId: atomConnectionId,
-    interchainAccountId: interchainAccountAtom,
-  });
-  console.log(chalk.cyan("Response: "), "account info: ", JSON.stringify(atomAccountInfo, null, 2));
-
-  // Query more account data Gaia
-  const atomMoreAccountInfo = await ica_helper.interchainAccountAddressFromContract({
-    interchainAccountId: interchainAccountAtom,
-  });
-  console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(atomMoreAccountInfo, null, 2));
 
   // Query interchain address Osmo
   const osmoAccountInfo = await ica_helper.interchainAccountAddress({

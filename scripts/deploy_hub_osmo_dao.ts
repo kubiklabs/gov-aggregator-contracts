@@ -18,44 +18,34 @@ async function run () {
   const nativeDenom = "untrn";  // Neutron fee token
   const atomDenom = "uatom";    // Cosmos hub fee token
   const osmoDenom = "uosmo";    // Osmosis fee token
-  const junoDenom = "ujuno";    // Juno fee token
   const contract_owner = await getAccountByName("account_0");
 
   const atomConnectionId = "connection-0";
   const osmoConnectionId = "connection-2";
-  const junoConnectionId = "connection-1";
 
   const atomChainId = "gaia-test-2";
   const osmoChainId = "osmo-test-4";
-  const junoChainId = "juno-test-3";
 
-  const DaoName = "All Chains DAO";
-  const DaoDescription = "One DAO for all the chains connected to Neutron";
+  const DaoName = "Hub and Osmosis DAO";
+  const DaoDescription = "DAO for Cosmos Hub and Osmosis";
   const chainsList = [
     {
       chain_id: atomChainId,
       connection_id: atomConnectionId,
-      stake: 40,
+      stake: 50,
     },
     {
       chain_id: osmoChainId,
       connection_id: osmoConnectionId,
-      stake: 30,
-    },
-    {
-      chain_id: junoChainId,
-      connection_id: junoConnectionId,
-      stake: 30,
+      stake: 50,
     },
   ];
 
   const interchainAccountAtom = "remote_account_atom";
   const interchainAccountOsmo = "remote_account_osmo";
-  const interchainAccountJuno = "remote_account_juno";
 
   const remoteValidatorAtom = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
   const remoteValidatorOsmo = "osmovaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zkc9nsx4";
-  const remoteValidatorJuno = "junovaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zkrxahm9";
 
   console.log("admin account fetched successfully");
 
@@ -264,25 +254,6 @@ async function run () {
   );
   console.log(chalk.cyan("Response: "), osmo_register_res);
 
-  // Register account on Juno chain
-  const juno_register_res = await ica_helper.register(
-    {
-      account: contract_owner,
-      customFees: {
-        amount: [{ amount: "125000", denom: nativeDenom }],
-        gas: "500000",
-      },
-      transferAmount: [ // fee for doing all following ICA txns, a bit more than min_fee
-        { amount: "500000", denom: nativeDenom }
-      ]
-    },
-    {
-      connectionId: junoConnectionId,
-      interchainAccountId: interchainAccountJuno,
-    }
-  );
-  console.log(chalk.cyan("Response: "), juno_register_res);
-
   await sleep(10);  // wait for addr to be created
 
   // Query interchain address Gaia
@@ -310,20 +281,6 @@ async function run () {
     interchainAccountId: interchainAccountOsmo,
   });
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(osmoMoreAccountInfo, null, 2));
-
-  // Query interchain address Juno
-  const junoAccountInfo = await ica_helper.interchainAccountAddress({
-    connectionId: junoConnectionId,
-    interchainAccountId: interchainAccountJuno,
-  });
-  console.log(chalk.cyan("Response: "), "account info: ", JSON.stringify(junoAccountInfo, null, 2));
-
-  // Query more account data Juno
-  const junoMoreAccountInfo = await ica_helper.interchainAccountAddressFromContract({
-    interchainAccountId: interchainAccountJuno,
-  });
-  console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(junoMoreAccountInfo, null, 2));
-
   await sleep(30);  // wait for addr to be funded manually
 
   // propose a text proposal with [] msgs
