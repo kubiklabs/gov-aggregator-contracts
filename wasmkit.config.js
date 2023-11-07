@@ -63,12 +63,7 @@ const gaia_localnet_accounts = [
     name: 'account_12',
     address: 'cosmos1j9r9emufvyka8dzgjjc0w40gg0pg4f5wmv6tx7',
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
-  },
-  {
-    name: 'account_13',
-    address: 'cosmos1t096zvazk2jdne0vrg2usn0xs9tylgtj5xr5pz',
-    mnemonic: 'relax major water toddler side dash danger cliff island denial border aisle pepper poverty scheme camp journey idle act kind pill praise exchange solution'
-  },
+  }
 ];
 const juno_localnet_accounts = [
   {
@@ -136,11 +131,74 @@ const juno_localnet_accounts = [
     address: 'juno1j9r9emufvyka8dzgjjc0w40gg0pg4f5wd7espz',
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   },
+];
+
+const osmo_localnet_accounts = [
   {
-    name: 'account_13',
-    address: 'juno1t096zvazk2jdne0vrg2usn0xs9tylgtjz5q0x7',
-    mnemonic: 'relax major water toddler side dash danger cliff island denial border aisle pepper poverty scheme camp journey idle act kind pill praise exchange solution'
-  }
+    name: 'account_0',
+    address: 'osmo1m9l358xunhhwds0568za49mzhvuxx9uxtz8m2l',
+    mnemonic: 'banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass'
+  },
+  {
+    name: 'account_1',
+    address: 'osmo10h9stc5v6ntgeygf5xf945njqq5h32r5e8nv6u',
+    mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
+  },
+  {
+    name: 'account_2',
+    address: 'osmo14xcrdjwwxtf9zr7dvaa97wy056se6r5e0mfhdu',
+    mnemonic: 'obscure canal because tomorrow tribe sibling describe satoshi kiwi upgrade bless empty math trend erosion oblige donate label birth chronic hazard ensure wreck shine'
+  },
+  {
+    name: 'account_3',
+    address: 'osmo1n2s7z5plhqy3uycervl2mzhyeqlpx6f4nzp37e',
+    mnemonic: 'orange shaft abandon find six fluid release picnic library waste inflict velvet physical clerk manual rookie cargo gown vendor museum dove brain runway people'
+  },
+  {
+    name: 'account_4',
+    address: 'osmo1t0d2pgp0qzl8xk9q2vsqsy6sdm6t6ay4ff8x64',
+    mnemonic: 'labor add oven alone pride disease imitate february smooth pudding grain seat slim slice gown matrix citizen extra vessel increase release settle boring chair'
+  },
+  {
+    name: 'account_5',
+    address: 'osmo1e73jghyrfhksn2lfw8alnmsmt9lp2y7zmavpuh',
+    mnemonic: 'member deal deputy vague embody truck ozone pull unique picture say tool rabbit ripple raise garlic point thunder level clinic toddler avocado knee maze'
+  },
+  {
+    name: 'account_6',
+    address: 'osmo1p46rjmu8lqxppyljqnp4vyphx8v6uz0j2qhh8j',
+    mnemonic: 'tower crazy oblige owner chimney snow blanket sunny clown hotel exit raise circle cage stumble crush quiz scorpion broken door drill blue dance alley'
+  },
+  {
+    name: 'account_7',
+    address: 'osmo1vs6chqj4s3vpcgwm6ja2m5sa3l3q4k5tlfqh8l',
+    mnemonic: 'major sorry fine subject thumb camp vintage jacket valley hold bronze thought crime slow point either cycle supply buzz major style powder effort chief'
+  },
+  {
+    name: 'account_8',
+    address: 'osmo1vsw47sxf0ngmyjysek6e2efsskt66zt8adkpjg',
+    mnemonic: 'corn order odor cart relax practice wrestle gravity ankle category exile surface mule clay message quote cushion possible aspect ensure hazard slow torch repeat'
+  },
+  {
+    name: 'account_9',
+    address: 'osmo1fedsdf6d5jt86t6dqmk9yrwrgmkd074ck6ky2a',
+    mnemonic: 'symptom camera collect dismiss screen wagon club maid math slim awkward joy human inch orbit sing display nice gentle gauge object pride salmon forget'
+  },
+  {
+    name: 'account_10',
+    address: 'osmo1cdkjxu7h8mxm9njma5m0m6crfnfd9x56alvapg',
+    mnemonic: 'half sauce cupboard card audit fitness replace entire crack exile audit brave delay exhaust embark like afraid mountain critic custom glimpse load grunt ugly'
+  },
+  {
+    name: 'account_11',
+    address: 'osmo19uav3ef4m6l34av4czysky4xj4cp9pvsuwzfnq',
+    mnemonic: 'region sure orchard robust asset maximum output genre stand hurt dilemma disease accuse truth cargo approve foster pear two great bonus life bracket brief'
+  },
+  {
+    name: 'account_12',
+    address: 'osmo1j9r9emufvyka8dzgjjc0w40gg0pg4f5wnhfmsv',
+    mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
+  },
 ];
 
 const neutron_testnet_accounts = [
@@ -218,11 +276,6 @@ const neutron_localnet_accounts = [
     address: 'neutron1j9r9emufvyka8dzgjjc0w40gg0pg4f5wlnnfue',
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   },
-  {
-    name: 'account_13',
-    address: 'neutron1t096zvazk2jdne0vrg2usn0xs9tylgtjse2km9',
-    mnemonic: 'relax major water toddler side dash danger cliff island denial border aisle pepper poverty scheme camp journey idle act kind pill praise exchange solution'
-  }
 ];
 
 const neutron_mainnet_accounts = [
@@ -289,6 +342,26 @@ const networks = {
       }
     },
   },
+  osmo_localnet: {
+    endpoint: 'http://45.250.253.23:46657/',
+    // endpoint: 'http://localhost:46657/',
+    chainId: 'osmo-test-4',
+    accounts: osmo_localnet_accounts,
+    fees: {
+      upload: {
+        amount: [{ amount: "750000", denom: "uosmo" }],
+        gas: "3000000",
+      },
+      init: {
+        amount: [{ amount: "250000", denom: "uosmo" }],
+        gas: "1000000",
+      },
+      exec: {
+        amount: [{ amount: "250000", denom: "uosmo" }],
+        gas: "1000000",
+      }
+    },
+  },
   neutron_testnet: {
     endpoint: 'https://neutron-testnet-rpc.polkachu.com/',
     chainId: 'pion-1',
@@ -336,6 +409,7 @@ module.exports = {
     localnet: networks.neutron_localnet,
     localgaia: networks.gaia_localnet,
     localjuno: networks.juno_localnet,
+    localosmo: networks.osmo_localnet,
     mainnet: networks.neutron_mainnet,
   },
   localnetworks: {
