@@ -5,8 +5,10 @@
   "required": [
     "denom",
     "description",
+    "icq_helper",
     "name",
-    "owner"
+    "owner",
+    "remote_chain_id"
   ],
   "properties": {
     "denom": {
@@ -15,11 +17,17 @@
     "description": {
       "type": "string"
     },
+    "icq_helper": {
+      "$ref": "#/definitions/Addr"
+    },
     "name": {
       "type": "string"
     },
     "owner": {
       "$ref": "#/definitions/Addr"
+    },
+    "remote_chain_id": {
+      "type": "string"
     }
   },
   "definitions": {

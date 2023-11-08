@@ -10,6 +10,8 @@ pub struct Config {
     pub description: String,
     pub owner: Addr,
     pub denom: String,
+    pub remote_chain_id: String,
+    pub icq_helper: Addr,
 }
 
 impl Config {
@@ -57,6 +59,8 @@ mod tests {
             description: String::from("description"),
             owner: Addr::unchecked("owner"),
             denom: String::from("denom"),
+            remote_chain_id: String::from("osmo-test-1"),
+            icq_helper: Addr::unchecked("icq_helper"),
         };
         assert_eq!(cfg_ok.validate(), Ok(()));
 
@@ -65,6 +69,8 @@ mod tests {
             description: String::from("description"),
             owner: Addr::unchecked("owner"),
             denom: String::from("denom"),
+            remote_chain_id: String::from("osmo-test-1"),
+            icq_helper: Addr::unchecked("icq_helper"),
         };
         assert_eq!(
             cfg_empty_name.validate(),
@@ -76,6 +82,8 @@ mod tests {
             description: String::from(""),
             owner: Addr::unchecked("owner"),
             denom: String::from("denom"),
+            remote_chain_id: String::from("osmo-test-1"),
+            icq_helper: Addr::unchecked("icq_helper"),
         };
         assert_eq!(
             cfg_empty_description.validate(),
@@ -87,6 +95,8 @@ mod tests {
             description: String::from("description"),
             owner: Addr::unchecked("owner"),
             denom: String::from(""),
+            remote_chain_id: String::from("osmo-test-1"),
+            icq_helper: Addr::unchecked("icq_helper"),
         };
         assert_eq!(
             cfg_empty_denom.validate(),

@@ -1,8 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coins, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult, Uint128,
+    coins, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut,
+    Env, MessageInfo, Response, StdResult, Uint128, Addr,
 };
 use cw2::set_contract_version;
 use cw_utils::must_pay;
@@ -12,7 +12,7 @@ use cwd_interface::voting::{
 use cwd_voting::vault::{BonderBalanceResponse, ListBondersResponse};
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, IcqHelerQueryMsg, DelegatorDelegationsResponse};
 use crate::state::{Config, BONDED_BALANCES, BONDED_TOTAL, CONFIG, DAO};
 
 pub(crate) const CONTRACT_NAME: &str = "crates.io:neutron-voting-vault";
@@ -34,6 +34,8 @@ pub fn instantiate(
         description: msg.description,
         owner,
         denom: msg.denom,
+        remote_chain_id: msg.remote_chain_id,
+        icq_helper: msg.icq_helper,
     };
     config.validate()?;
     CONFIG.save(deps.storage, &config)?;
@@ -54,30 +56,92 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
+        ExecuteMsg::CreateVoter {
+            remote_address,
+        } => execute_create_voter(deps, env, info, remote_address),
         ExecuteMsg::Bond {} => execute_bond(deps, env, info),
         ExecuteMsg::Unbond { amount } => execute_unbond(deps, env, info, amount),
         ExecuteMsg::UpdateConfig {
             owner,
             name,
             description,
-        } => execute_update_config(deps, info, owner, name, description),
+        } => execute_update_config(
+            deps,
+            info,
+            owner,
+            name,
+            description,
+        ),
     }
 }
 
-pub fn execute_bond(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn execute_create_voter(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    remote_address: Addr,
+) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
+
+    // query the amount of remote asset staked
+    // for remote address and store for bonded balance
+    let remote_delegations: DelegatorDelegationsResponse = deps.querier.query_wasm_smart(
+        config.icq_helper.clone(),
+        &IcqHelerQueryMsg::GetDelegations { address: remote_address },
+    )?;
+
+    let total_delegation_amount = remote_delegations.delegations.iter().fold(
+        0u128, |p, n| p + n.amount.amount.u128()
+    );
+    let amount = Uint128::from(total_delegation_amount);
+
+    BONDED_BALANCES.update(
+        deps.storage,
+        &info.sender,
+        env.block.height,
+        |balance| -> StdResult<Uint128> {
+            Ok(balance.unwrap_or_default().checked_add(amount)?)
+        },
+    )?;
+    BONDED_TOTAL.update(
+        deps.storage,
+        env.block.height,
+        |total| -> StdResult<Uint128> {
+            Ok(total.unwrap_or_default().checked_add(amount)?)
+        },
+    )?;
+
+    Ok(Response::new()
+        .add_attribute("action", "bond")
+        .add_attribute("amount", amount.to_string())
+        .add_attribute("from", info.sender))
+}
+
+pub fn execute_bond(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+
+    // query the amount of remote asset staked
+    // for remote address and store for bonded balance
     let amount = must_pay(&info, &config.denom)?;
 
     BONDED_BALANCES.update(
         deps.storage,
         &info.sender,
         env.block.height,
-        |balance| -> StdResult<Uint128> { Ok(balance.unwrap_or_default().checked_add(amount)?) },
+        |balance| -> StdResult<Uint128> {
+            Ok(balance.unwrap_or_default().checked_add(amount)?)
+        },
     )?;
     BONDED_TOTAL.update(
         deps.storage,
         env.block.height,
-        |total| -> StdResult<Uint128> { Ok(total.unwrap_or_default().checked_add(amount)?) },
+        |total| -> StdResult<Uint128> {
+            Ok(total.unwrap_or_default().checked_add(amount)?)
+        },
     )?;
 
     Ok(Response::new()
