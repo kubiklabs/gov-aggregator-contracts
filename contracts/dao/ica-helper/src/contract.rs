@@ -10,7 +10,7 @@ use cosmos_sdk_proto::cosmos::distribution::v1beta1::CommunityPoolSpendProposal;
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     coin, to_binary, Binary, CosmosMsg, CustomQuery, Deps, DepsMut,
-    Env, MessageInfo, Reply, Response, StdError, StdResult, SubMsg,
+    Env, MessageInfo, Reply, Response, StdError, StdResult, SubMsg, entry_point,
 };
 use cw2::set_contract_version;
 use neutron_sdk::sudo::msg::RequestPacketTimeoutHeight;

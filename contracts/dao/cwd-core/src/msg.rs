@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, CosmosMsg, Uint128, CustomMsg};
+use cosmwasm_std::{Addr, CosmosMsg, Uint128, CustomMsg, WasmMsg};
 use cw_utils::Duration;
 use cwd_interface::voting::{
     InfoResponse, TotalPowerAtHeightResponse, VotingPowerAtHeightResponse,
@@ -99,7 +99,7 @@ pub enum IcaHelperMsg {
 pub enum ExecuteMsg {
     /// Callable by proposal modules. The DAO will execute the
     /// messages in the hook in order.
-    ExecuteProposalHook { msgs: Vec<CosmosMsg<ProposalType>> },
+    ExecuteProposalHook { msgs: Vec<WasmMsg> },
     /// Pauses the DAO for a set duration.
     /// When paused the DAO is unable to execute proposals
     Pause { duration: Duration },
@@ -209,11 +209,14 @@ pub enum QueryMsg {
 #[serde(rename_all = "snake_case")]
 /// A number of Custom messages that can call into the Neutron bindings.
 pub enum ProposalType {
-    BringRemoteFund{
+    // BringRemoteFund{
+    //     demand_info: Vec<FundInfo>
+    // },
+    ProposeFunds{
         demand_info: Vec<FundInfo>
     },
-    AskFund{
-        demand_info: Vec<FundInfo>
+    RandomMsg{
+        msg: Vec<WasmMsg>
     }
 }
 
@@ -233,7 +236,8 @@ impl CustomMsg for ProposalType {}
 pub struct FundInfo {
     pub chain_id: String,
     pub amount: Uint128,
-    pub denom: String
+    pub denom: String,
+    pub interchain_account_id: String
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ChainStake {

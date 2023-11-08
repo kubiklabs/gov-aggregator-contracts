@@ -172,7 +172,7 @@ pub fn execute_pause(
 pub fn execute_proposal_hook(
     deps: Deps,
     sender: Addr,
-    msgs: Vec<CosmosMsg<ProposalType>>,
+    msgs: Vec<WasmMsg>,
 ) -> Result<Response<ProposalType>, ContractError> {
     let module = PROPOSAL_MODULES
         .may_load(deps.storage, sender.clone())?
