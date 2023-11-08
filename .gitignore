@@ -20,3 +20,4 @@ node_modules/
 setup/node_modules
 setup/delegate.js
 setup/undelegate.js
+setup/ibc_transfer.js
