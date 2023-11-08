@@ -20,8 +20,8 @@ cosmwasm-std = { version = "1.3.0" }
 cw2 = "1.1.0"
 serde = { version = "1.0.175", default-features = false, features = ["derive"] }
 cwd-pre-propose-base = { version = "*", path = "../../../../packages/cwd-pre-propose-base" }
-cwd-core = { path = "../../../dao/cwd-core" }
-neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
+cwd-core = { path = "../../../dao/cwd-core", features = ["library"] }
+neutron-sdk = { path = "../../../../packages/neutron-sdk", default-features = false }
 schemars = "0.8.8"
 
 [dev-dependencies]

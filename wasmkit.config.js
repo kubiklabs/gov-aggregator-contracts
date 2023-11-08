@@ -431,7 +431,7 @@ module.exports = {
     timeout: 60000
   },
   rust: {
-    version: "1.68.0",
+    version: "1.68.2",
   },
   commands: {
     compile: "RUSTFLAGS='-C link-arg=-s' cargo build --release --target wasm32-unknown-unknown",

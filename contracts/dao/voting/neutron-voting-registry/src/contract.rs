@@ -53,11 +53,25 @@ pub fn execute(
     match msg {
         ExecuteMsg::AddVotingVault {
             new_voting_vault_contract,
-        } => execute_add_voting_vault(deps, env, info, new_voting_vault_contract),
+        } => execute_add_voting_vault(
+            deps,
+            env,
+            info,
+            new_voting_vault_contract,
+        ),
         ExecuteMsg::RemoveVotingVault {
             old_voting_vault_contract,
-        } => execute_remove_voting_vault(deps, env, info, old_voting_vault_contract),
-        ExecuteMsg::UpdateConfig { owner } => execute_update_config(deps, info, owner),
+        } => execute_remove_voting_vault(
+            deps,
+            env,
+            info,
+            old_voting_vault_contract,
+        ),
+        ExecuteMsg::UpdateConfig { owner } => execute_update_config(
+            deps,
+            info,
+            owner,
+        ),
     }
 }
 

@@ -1,5 +1,5 @@
 [package]
-name = "neutron-voting-registry"
+name = "neutron-vault"
 authors = ["Adarsh"]
 description = "A DAO DAO voting module based on staked cw721 tokens."
 edition = "2021"
@@ -26,6 +26,7 @@ cw-utils = {version = "1.0.1"}
 cw2 = "1.1.0"
 cwd-interface = {path = "../../../../packages/cwd-interface"}
 cwd-macros = {path = "../../../../packages/cwd-macros"}
+cwd-voting = {path = "../../../../packages/cwd-voting"}
 schemars = "0.8.8"
 serde = {version = "1.0.175", default-features = false, features = ["derive"]}
 thiserror = {version = "1.0"}

@@ -1,28 +1,22 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Uint128};
+use cwd_interface::voting::InfoResponse;
 use cwd_interface::voting::{
-    BondingStatusResponse, InfoResponse, TotalPowerAtHeightResponse, VotingPowerAtHeightResponse,
+    BondingStatusResponse, TotalPowerAtHeightResponse, VotingPowerAtHeightResponse,
 };
 use cwd_macros::{info_query, voting_query, voting_vault, voting_vault_query};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
 pub struct InstantiateMsg {
     /// Name contains the vault name which is used to ease the vault's recognition.
     pub name: String,
-    /// Description contains information that characterizes the vault.
+    // Description contains information that characterizes the vault.
     pub description: String,
-    /// The ATOM Vesting LP contract behind the vault.
-    pub atom_vesting_lp_contract: String,
-    /// The ATOM oracle contract behind the vault.
-    pub atom_oracle_contract: String,
-    /// The USDC Vesting LP contract behind the vault.
-    pub usdc_vesting_lp_contract: String,
-    /// The USDC oracle contract behind the vault.
-    pub usdc_oracle_contract: String,
-    /// Owner can update all configs including changing the owner. This will generally be a DAO.
+    // Owner can update all configs including changing the owner. This will generally be a DAO.
     pub owner: String,
+    // Token denom e.g. untrn, or some ibc denom
+    pub denom: String,
 }
 
 #[voting_vault]
@@ -30,13 +24,9 @@ pub struct InstantiateMsg {
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     UpdateConfig {
-        owner: String,
-        atom_vesting_lp_contract: String,
-        atom_oracle_contract: String,
-        usdc_vesting_lp_contract: String,
-        usdc_oracle_contract: String,
         name: String,
         description: String,
+        owner: String,
     },
 }
 
@@ -46,7 +36,7 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::types::Config)]
+    #[returns(crate::state::Config)]
     Config {},
 }
 
