@@ -675,7 +675,8 @@
         "required": [
           "amount",
           "chain_id",
-          "denom"
+          "denom",
+          "interchain_account_id"
         ],
         "properties": {
           "amount": {
@@ -685,6 +686,9 @@
             "type": "string"
           },
           "denom": {
+            "type": "string"
+          },
+          "interchain_account_id": {
             "type": "string"
           }
         }
@@ -885,10 +889,10 @@
           {
             "type": "object",
             "required": [
-              "bring_remote_fund"
+              "propose_funds"
             ],
             "properties": {
-              "bring_remote_fund": {
+              "propose_funds": {
                 "type": "object",
                 "required": [
                   "demand_info"
@@ -908,19 +912,19 @@
           {
             "type": "object",
             "required": [
-              "ask_fund"
+              "random_msg"
             ],
             "properties": {
-              "ask_fund": {
+              "random_msg": {
                 "type": "object",
                 "required": [
-                  "demand_info"
+                  "msg"
                 ],
                 "properties": {
-                  "demand_info": {
+                  "msg": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/FundInfo"
+                      "$ref": "#/definitions/WasmMsg"
                     }
                   }
                 }
@@ -2163,7 +2167,8 @@
           "required": [
             "amount",
             "chain_id",
-            "denom"
+            "denom",
+            "interchain_account_id"
           ],
           "properties": {
             "amount": {
@@ -2173,6 +2178,9 @@
               "type": "string"
             },
             "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
               "type": "string"
             }
           }
@@ -2423,10 +2431,10 @@
             {
               "type": "object",
               "required": [
-                "bring_remote_fund"
+                "propose_funds"
               ],
               "properties": {
-                "bring_remote_fund": {
+                "propose_funds": {
                   "type": "object",
                   "required": [
                     "demand_info"
@@ -2446,19 +2454,19 @@
             {
               "type": "object",
               "required": [
-                "ask_fund"
+                "random_msg"
               ],
               "properties": {
-                "ask_fund": {
+                "random_msg": {
                   "type": "object",
                   "required": [
-                    "demand_info"
+                    "msg"
                   ],
                   "properties": {
-                    "demand_info": {
+                    "msg": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/FundInfo"
+                        "$ref": "#/definitions/WasmMsg"
                       }
                     }
                   }
@@ -3386,7 +3394,8 @@
           "required": [
             "amount",
             "chain_id",
-            "denom"
+            "denom",
+            "interchain_account_id"
           ],
           "properties": {
             "amount": {
@@ -3396,6 +3405,9 @@
               "type": "string"
             },
             "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
               "type": "string"
             }
           }
@@ -3627,10 +3639,10 @@
             {
               "type": "object",
               "required": [
-                "bring_remote_fund"
+                "propose_funds"
               ],
               "properties": {
-                "bring_remote_fund": {
+                "propose_funds": {
                   "type": "object",
                   "required": [
                     "demand_info"
@@ -3650,19 +3662,19 @@
             {
               "type": "object",
               "required": [
-                "ask_fund"
+                "random_msg"
               ],
               "properties": {
-                "ask_fund": {
+                "random_msg": {
                   "type": "object",
                   "required": [
-                    "demand_info"
+                    "msg"
                   ],
                   "properties": {
-                    "demand_info": {
+                    "msg": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/FundInfo"
+                        "$ref": "#/definitions/WasmMsg"
                       }
                     }
                   }
@@ -4568,7 +4580,8 @@
           "required": [
             "amount",
             "chain_id",
-            "denom"
+            "denom",
+            "interchain_account_id"
           ],
           "properties": {
             "amount": {
@@ -4578,6 +4591,9 @@
               "type": "string"
             },
             "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
               "type": "string"
             }
           }
@@ -4828,10 +4844,10 @@
             {
               "type": "object",
               "required": [
-                "bring_remote_fund"
+                "propose_funds"
               ],
               "properties": {
-                "bring_remote_fund": {
+                "propose_funds": {
                   "type": "object",
                   "required": [
                     "demand_info"
@@ -4851,19 +4867,19 @@
             {
               "type": "object",
               "required": [
-                "ask_fund"
+                "random_msg"
               ],
               "properties": {
-                "ask_fund": {
+                "random_msg": {
                   "type": "object",
                   "required": [
-                    "demand_info"
+                    "msg"
                   ],
                   "properties": {
-                    "demand_info": {
+                    "msg": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/FundInfo"
+                        "$ref": "#/definitions/WasmMsg"
                       }
                     }
                   }

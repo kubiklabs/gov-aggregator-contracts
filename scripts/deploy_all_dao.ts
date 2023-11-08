@@ -217,7 +217,7 @@ async function run () {
 
   const core_state = await dao_core.dumpState();
   console.log("core_state", core_state);
-
+/*
   // Update the contractAddress in Proposal contract
   proposal.instantiatedWithAddress(core_state.proposal_modules[0].address);
   console.log(chalk.cyan("Updated Proposal module address: "), proposal.contractAddress);
@@ -324,10 +324,10 @@ async function run () {
   });
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(junoMoreAccountInfo, null, 2));
 
-  await sleep(30);  // wait for addr to be funded manually
-
-  // propose a text proposal with [] msgs
-  const text_prop_create = await proposal.propose(
+  await sleep(150);  // wait for addr to be funded manually
+*/
+  /*
+  const text_prop_create_gaia = await proposal.propose(
     {
       account: contract_owner,
       customFees: {
@@ -336,14 +336,96 @@ async function run () {
       },
     },
     {
-      title: "This is first proposal",
-      description: "This is a text proposal",
-      msgs: [],
+      title: "This is first proposal on gaia",
+      description: "This is a text proposal with proposefund custom message on gaia",
+      msgs: [
+        {
+          "custom": {
+            "propose_funds": {
+              "demand_info": [
+                {
+                  "chain_id": "gaia-test-2",
+                  "amount": "2000000",
+                  "denom": "uatom",
+                  "interchain_account_id": interchainAccountAtom
+                }
+              ]
+            }
+          }
+        }
+      ],
       proposer: null,  // null for all allowed, addr for pre-propose module
     }
   );
-  console.log(chalk.cyan("Response: "), text_prop_create);
 
+  console.log("proposal created for gaia, ",text_prop_create_gaia)
+
+  const text_prop_create_juno = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is first proposal on Juno",
+      description: "This is a text proposal with proposefund custom message on Juno",
+      msgs: [
+        {
+          "custom": {
+            "propose_funds": {
+              "demand_info": [
+                {
+                  "chain_id": "juno-test-3",
+                  "amount": "3000000",
+                  "denom": "ujuno",
+                  "interchain_account_id": interchainAccountJuno
+                }
+              ]
+            }
+          }
+        }
+      ],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+
+  console.log("proposal created for gaia, ",text_prop_create_juno)
+
+  const text_prop_create_osmo = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is first proposal on Osmo",
+      description: "This is a text proposal with proposefund custom message on Osmo",
+      msgs: [
+        {
+          "custom": {
+            "propose_funds": {
+              "demand_info": [
+                {
+                  "chain_id": "osmo-test-4",
+                  "amount": "4000000",
+                  "denom": "uosmo",
+                  "interchain_account_id": interchainAccountOsmo
+                }
+              ]
+            }
+          }
+        }
+      ],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+
+  console.log("proposal created for osmo, ",text_prop_create_osmo)
+*/
   // // propose a text proposal with [GetFunds] msgs
   // const get_fund_prop_create = await proposal.propose(
   //   {
@@ -379,6 +461,68 @@ async function run () {
   // );
   // console.log(chalk.cyan("Response: "), get_fund_prop_create);
 
+  // proposal on all-chains
+  // const text_prop_create_all_chain = await proposal.propose(
+  //   {
+  //     account: contract_owner,
+  //     customFees: {
+  //       amount: [{ amount: "75000", denom: nativeDenom }],
+  //       gas: "300000",
+  //     },
+  //   },
+  //   {
+  //     title: "This is first proposal on Osmo",
+  //     description: "This is a text proposal with proposefund custom message on Osmo",
+  //     msgs: [
+  //       {
+  //         "custom": {
+  //           "propose_funds": {
+  //             "demand_info": [
+  //               {
+  //                 "chain_id": "gaia-test-2",
+  //                 "amount": "2000000",
+  //                 "denom": "uatom",
+  //                 "interchain_account_id": interchainAccountAtom
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       },
+  //       {
+  //         "custom": {
+  //           "propose_funds": {
+  //             "demand_info": [
+  //               {
+  //                 "chain_id": "juno-test-3",
+  //                 "amount": "3000000",
+  //                 "denom": "ujuno",
+  //                 "interchain_account_id": interchainAccountJuno
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       },
+  //       {
+  //         "custom": {
+  //           "propose_funds": {
+  //             "demand_info": [
+  //               {
+  //                 "chain_id": "osmo-test-4",
+  //                 "amount": "4000000",
+  //                 "denom": "uosmo",
+  //                 "interchain_account_id": interchainAccountOsmo
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       }
+  //     ],
+  //     proposer: null,  // null for all allowed, addr for pre-propose module
+  //   }
+  // );
+
+  // console.log("create proposal for asking fund from all chains, ",text_prop_create_all_chain)
+
   // Query all proposals
   const proposals_list = await proposal.listProposals(
     {
@@ -388,6 +532,7 @@ async function run () {
   );
   console.log(chalk.cyan("Proposals list: "), proposals_list);
 
+  /*
   // Query first proposal
   const proposals_first = await proposal.proposal(
     {
@@ -395,6 +540,65 @@ async function run () {
     },
   );
   console.log(chalk.cyan("First proposal: "), proposals_first);
+  
+
+  // Executing all proposal as no voting is handled yet
+  const execute_first = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+    },
+    {
+      proposalId: 1,
+    }
+  );
+  console.log(chalk.cyan("Execute first proposal, for gaia: "), execute_first);
+
+  // Execute the GetFunds proposal
+  const execute_second = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+    },
+    {
+      proposalId: 2,
+    }
+  );
+  console.log(chalk.cyan("Execute second proposal,for juno: "), execute_second);
+
+  const execute_third = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
+      },
+    },
+    {
+      proposalId: 3,
+    }
+  );
+  console.log(chalk.cyan("Execute third proposal,for osmo: "), execute_third);
+  */
+  const execute_all = await proposal.execute(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "1000000",
+      },
+    },
+    {
+      proposalId: 4,
+    }
+  );
+  console.log(chalk.cyan("Execute third proposal,for osmo: "), execute_all);
 }
 
 module.exports = { default: run };

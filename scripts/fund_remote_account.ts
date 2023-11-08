@@ -18,11 +18,11 @@ async function run () {
     prefix: "cosmos"
   });
   const client = await SigningStargateClient.connectWithSigner(
-    'http://localhost:16657/',
+    'http://45.250.253.23:16657/',
     wallet,
   );
 
-  const interchainAccount = "cosmos1rjygr96xuk0755vhvyqkrmh5lkuv9dncfwncca7dhzh07v8dxe5st546ta";
+  const interchainAccount = "cosmos1e77ntxnp4stetvgr7rzhxgacseefxnmrgzus72xjm2tqs027qrhsgpc6ge";
   const remoteValidatorOne = "cosmosvaloper18hl5c9xn5dze2g50uaw0l2mr02ew57zk0auktn";
 
   console.log("admin account fetched successfully");
