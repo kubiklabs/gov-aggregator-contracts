@@ -323,7 +323,7 @@ const networks = {
   gaia_localnet: {
     endpoint: 'http://localhost:16657/',
     chainId: 'test-2',
-    accounts: cosmos_localnet_accounts,
+    accounts: gaia_localnet_accounts,
     fees: {
       upload: {
         amount: [{ amount: "750000", denom: "uatom" }],
