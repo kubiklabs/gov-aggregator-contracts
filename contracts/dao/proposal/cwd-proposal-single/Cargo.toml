@@ -30,6 +30,7 @@ serde = {version = "1.0.175", default-features = false, features = ["derive"]}
 thiserror = {version = "1.0"}
 
 cwd-core = {path = "../../cwd-core", features = ["library"]}
+ica-helper = {path = "../../ica-helper", features = ["library"]}
 cwd-hooks = {path = "../../../../packages/cwd-hooks"}
 cwd-interface = {path = "../../../../packages/cwd-interface"}
 cwd-macros = {path = "../../../../packages/cwd-macros"}

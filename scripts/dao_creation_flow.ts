@@ -229,7 +229,7 @@ async function run () {
   });
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(moreAccountInfo, null, 2));
 
-  await sleep(30);  // wait for addr to be funded manually
+  await sleep(120);  // wait for addr to be funded manually
 
   // propose a text proposal with [] msgs
   const text_prop_create = await proposal.propose(
@@ -242,12 +242,27 @@ async function run () {
     },
     {
       title: "This is first proposal",
-      description: "This is a text proposal",
-      msgs: [],
+      description: "This is a text proposal with proposefund custom message",
+      msgs: [
+        {
+          "custom": {
+            "propose_funds": {
+              "demand_info": [
+                {
+                  "chain_id": "gaia-test-2",
+                  "amount": "3000000",
+                  "denom": "uatom",
+                  "interchain_account_id": interchainAccountName
+                }
+              ]
+            }
+          }
+        }
+      ],
       proposer: null,  // null for all allowed, addr for pre-propose module
     }
   );
-  console.log(chalk.cyan("Response: "), text_prop_create);
+  console.log(chalk.cyan("Proposal with random message, Response: "), text_prop_create);
 
   // propose a text proposal with [GetFunds] msgs
   const get_fund_prop_create = await proposal.propose(
@@ -259,22 +274,28 @@ async function run () {
       },
     },
     {
-      title: "This is second proposal",
+      title: "This is second proposal with proposal type proposeFunds",
       description: "This is a community pool fund proposal",
       msgs: [
         {
-          wasm: {
-            execute: {
-              contract_addr: ica_helper.contractAddress,
-              msg: Buffer.from(JSON.stringify({
-                propose_funds: {
-                  amount: "1000000" as any,  // 1 atom
-                  denom: remoteDenom,
-                  interchain_account_id: interchainAccountName,
-                  timeout: null,  // in seconds, TODO: confirm it later
+          "custom": {
+            "random_msg": {
+              "msg": [
+                {
+                  execute: {
+                    contract_addr: ica_helper.contractAddress,
+                    msg: Buffer.from(JSON.stringify({
+                      propose_funds: {
+                        amount: "1000000" as any,  // 1 atom
+                        denom: remoteDenom,
+                        interchain_account_id: interchainAccountName,
+                        timeout: null,  // in seconds, TODO: confirm it later
+                      }
+                    })).toString("base64"),
+                    funds: [],
+                  }
                 }
-              })).toString("base64"),
-              funds: [],
+              ]
             }
           }
         }
@@ -282,7 +303,41 @@ async function run () {
       proposer: null,  // null for all allowed, addr for pre-propose module
     }
   );
-  console.log(chalk.cyan("Response: "), get_fund_prop_create);
+  console.log(chalk.cyan("Proposal created with random msg wasmMsg, Response: "), get_fund_prop_create);
+  // // propose a text proposal with [GetFunds] msgs
+  // const get_fund_prop_create = await proposal.propose(
+  //   {
+  //     account: contract_owner,
+  //     customFees: {
+  //       amount: [{ amount: "75000", denom: nativeDenom }],
+  //       gas: "300000",
+  //     },
+  //   },
+  //   {
+  //     title: "This is second proposal",
+  //     description: "This is a community pool fund proposal",
+  //     msgs: [
+  //       {
+  //         wasm: {
+  //           execute: {
+  //             contract_addr: ica_helper.contractAddress,
+  //             msg: Buffer.from(JSON.stringify({
+  //               propose_funds: {
+  //                 amount: "1000000" as any,  // 1 atom
+  //                 denom: remoteDenom,
+  //                 interchain_account_id: interchainAccountName,
+  //                 timeout: null,  // in seconds, TODO: confirm it later
+  //               }
+  //             })).toString("base64"),
+  //             funds: [],
+  //           }
+  //         }
+  //       }
+  //     ],
+  //     proposer: null,  // null for all allowed, addr for pre-propose module
+  //   }
+  // );
+  // console.log(chalk.cyan("Response: "), get_fund_prop_create);
 
   // Query all proposals
   const proposals_list = await proposal.listProposals(

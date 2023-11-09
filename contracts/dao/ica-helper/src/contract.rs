@@ -6,7 +6,6 @@ use cosmos_sdk_proto::cosmos::gov::v1beta1::{
     MsgSubmitProposal, MsgSubmitProposalResponse,
 };
 use cosmos_sdk_proto::cosmos::distribution::v1beta1::CommunityPoolSpendProposal;
-#[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     coin, to_binary, Binary, CosmosMsg, CustomQuery, Deps, DepsMut,

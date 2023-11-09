@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -7,9 +9,10 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use cw_storage_plus::Bound;
 use cw_utils::{parse_reply_instantiate_data, Duration};
+use cwd_core::query::DumpStateResponse;
 use cwd_hooks::Hooks;
 use cwd_pre_propose_single::contract::ExecuteMsg as PreProposeMsg;
-use cwd_core::msg::ProposalType;
+use cwd_core::msg::{ProposalType, FundInfo};
 use cwd_proposal_hooks::{new_proposal_hooks, proposal_status_changed_hooks};
 use cwd_vote_hooks::new_vote_hooks;
 use cwd_voting::pre_propose::{PreProposeInfo, ProposalCreationPolicy};
@@ -23,6 +26,7 @@ use cwd_voting::voting::{
     get_total_power, get_voting_power, validate_voting_period,
     Vote, Votes, get_all_chain_power, get_voting_power_from_all_chain,
 };
+use ica_helper::msg::ExecuteMsg as IcaExecuteMsg;
 // use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::msg::MigrateMsg;
@@ -141,16 +145,14 @@ fn aggregate_involved_chains(msgs: Vec<CosmosMsg<ProposalType>>) -> Vec<String> 
     let mut chains_involve = Vec::new();
     for msg in msgs {
         match msg {
-            cosmwasm_std::CosmosMsg::Custom(ProposalType::AskFund { demand_info }) => {
+            cosmwasm_std::CosmosMsg::Custom(ProposalType::ProposeFunds { demand_info }) => {
                 for demand in demand_info {
                     chains_involve.push(demand.chain_id);
                 }
             },
-            cosmwasm_std::CosmosMsg::Custom(ProposalType::BringRemoteFund { demand_info }) => {
-                for demand in demand_info {
-                    chains_involve.push(demand.chain_id);
-                }
-            },
+            // cosmwasm_std::CosmosMsg::Custom(ProposalType::RandomMsg { msg }) => {
+                
+            // },
             _ => {}
         }
     }
@@ -333,12 +335,45 @@ pub fn execute_execute(
     prop.status = Status::Executed;
     PROPOSALS.save(deps.storage, proposal_id, &prop)?;
 
+    let mut converted_wasm_msg = Vec::new();
+    for propmsg in prop.msgs.clone() {
+            match propmsg {
+                cosmwasm_std::CosmosMsg::Custom(ProposalType::ProposeFunds { demand_info }) => {
+                    // query ica helper contarct address
+                    let dao_dump_state:DumpStateResponse = deps.querier.query_wasm_smart(
+                        config.dao.clone(),
+                        &cwd_core::msg::QueryMsg::DumpState {},
+                    )?;
+
+                    let ica_helper = dao_dump_state.ica_helper;
+                    for info in demand_info {
+                        // create_ica_proposal_message_on_remote_chain_for_fund(demand_info)
+                        let message = WasmMsg::Execute { 
+                            contract_addr: ica_helper.to_string(), 
+                            msg: to_binary(&IcaExecuteMsg::ProposeFunds { 
+                                interchain_account_id: info.interchain_account_id, 
+                                amount: info.amount.u128(), 
+                                denom: info.denom, 
+                                timeout: None 
+                            })?, 
+                            funds: vec![]
+                        };
+                        converted_wasm_msg.push(message);
+                    }
+                },
+                cosmwasm_std::CosmosMsg::Custom(ProposalType::RandomMsg { mut msg }) => {
+                    converted_wasm_msg.append(&mut msg)
+                }
+                _ => {}
+            };
+    }
+
     let response = {
         if !prop.msgs.is_empty() {
             let execute_message = WasmMsg::Execute {
                 contract_addr: config.dao.to_string(),
                 msg: to_binary(&cwd_core::msg::ExecuteMsg::ExecuteProposalHook {
-                    msgs: prop.msgs,
+                    msgs: converted_wasm_msg,
                 })?,
                 funds: vec![],
             };
