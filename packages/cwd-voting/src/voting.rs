@@ -279,6 +279,7 @@ pub fn get_total_power(deps: Deps, dao: Addr, height: Option<u64>) -> StdResult<
         .query_wasm_smart(dao, &voting::Query::TotalPowerAtHeight { height })?;
     Ok(response.power)
 }
+
 pub fn get_all_chain_power(deps: Deps, dao: Addr, height: Option<u64>,chains: Vec<String>) -> StdResult<Uint128> {
     let response: voting::TotalPowerAtHeightResponse = deps
         .querier

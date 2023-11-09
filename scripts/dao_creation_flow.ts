@@ -4,9 +4,11 @@ import { getAccountByName } from "@kubiklabs/wasmkit";
 import { CwdCoreContract } from "../artifacts/typescript_schema/CwdCoreContract";
 import { IcqHelperContract } from "../artifacts/typescript_schema/IcqHelperContract";
 import { IcaHelperContract } from "../artifacts/typescript_schema/IcaHelperContract";
+import { NeutronVaultContract } from "../artifacts/typescript_schema/NeutronVaultContract";
 import { ChainRegistryContract } from "../artifacts/typescript_schema/ChainRegistryContract";
 import { CwdProposalSingleContract } from "../artifacts/typescript_schema/CwdProposalSingleContract";
 import { CwdPreProposeSingleContract } from "../artifacts/typescript_schema/CwdPreProposeSingleContract";
+import { NeutronVotingRegistryContract } from "../artifacts/typescript_schema/NeutronVotingRegistryContract";
 
 import networkConfig from "./config/localnet.json";
 
@@ -41,6 +43,11 @@ async function run () {
   await icq_helper.setupClient();
   const ica_helper = new IcaHelperContract();
   await ica_helper.setupClient();
+
+  const voting_registry = new NeutronVotingRegistryContract();
+  await voting_registry.setupClient();
+  const voting_vault = new NeutronVaultContract();
+  await voting_vault.setupClient();
 
   // Deploy Chain Registry
   const deploy_chain_registry = await chain_registry.deploy(
@@ -122,6 +129,41 @@ async function run () {
   );
   console.log(chalk.cyan("Response: "), deploy_ica_helper);
 
+  // Deploy Voting Registry
+  const deploy_voting_registry = await voting_registry.deploy(
+    contract_owner,
+    {
+      amount: [{ amount: "13000", denom: nativeDenom }],
+      gas: "5000000",
+    }
+  );
+  console.log(chalk.cyan("Response: "), deploy_voting_registry);
+
+  // Deploy Voting vault
+  const deploy_voting_vault = await voting_vault.deploy(
+    contract_owner,
+    {
+      amount: [{ amount: "13000", denom: nativeDenom }],
+      gas: "5000000",
+    }
+  );
+  console.log(chalk.cyan("Response: "), deploy_voting_vault);
+
+  // Init Voting vault
+  const init_voting_vault = await voting_vault.instantiate(
+    {
+      denom: nativeDenom,
+      description: "This is a description",
+      icq_helper: "",
+      name: "Voting vault A",
+      owner: contract_owner.account.address,
+      remote_chain_id: "test-2",
+    },
+    `Voting vault contract ${runTs}`,
+    contract_owner
+  );
+  console.log(chalk.cyan("Response: "), init_voting_vault);
+
   // Init Cwd Core with CodeId of Proposal, ICQ helper, ICA helper
   const core_contract_info = await dao_core.instantiate(
     {
@@ -158,10 +200,10 @@ async function run () {
             allow_revoting: true,
             close_proposal_on_execution_failure: true,
             max_voting_period: {
-              time: 100_000,  // 100,000 blocks
+              time: 1000,  // 1000 blocks
             },
             min_voting_period: {
-              time: 10_000,  // 10,000 blocks
+              time: 1000,  // 1000 blocks
             },
             pre_propose_info: {
               anyone_may_propose: {},
@@ -176,6 +218,17 @@ async function run () {
           })).toString("base64"),
         }
       ],
+      voting_registry_module_instantiate_info: {
+        admin: null,
+        code_id: ica_helper.codeId,
+        label: `Voting registry Contract ${runTs}`,
+        msg: Buffer.from(JSON.stringify({
+            owner: contract_owner.account.address,  // TODO: replace with DAO core address
+            voting_vaults: [
+              voting_vault.contractAddress,
+            ],
+        })).toString("base64"),
+      }
     },
     `DAO Core contract ${runTs}`,
     contract_owner

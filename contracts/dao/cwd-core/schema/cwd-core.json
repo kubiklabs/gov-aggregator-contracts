@@ -13,7 +13,8 @@
       "ica_helper_module_instantiate_info",
       "icq_helper_module_instantiate_info",
       "name",
-      "proposal_modules_instantiate_info"
+      "proposal_modules_instantiate_info",
+      "voting_registry_module_instantiate_info"
     ],
     "properties": {
       "chain_list": {
@@ -38,7 +39,7 @@
         "type": "string"
       },
       "ica_helper_module_instantiate_info": {
-        "description": "Instantiate information for the core contract's voting power module. Instantiate information for the ica helper contract",
+        "description": "Instantiate information for the ica helper contract",
         "allOf": [
           {
             "$ref": "#/definitions/ModuleInstantiateInfo"
@@ -68,6 +69,14 @@
         "items": {
           "$ref": "#/definitions/ModuleInstantiateInfo"
         }
+      },
+      "voting_registry_module_instantiate_info": {
+        "description": "Instantiate information for the core contract's voting power module.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/ModuleInstantiateInfo"
+          }
+        ]
       }
     },
     "definitions": {

@@ -53,11 +53,11 @@ pub fn instantiate(
     config.validate()?;
     CONFIG.save(deps.storage, &config)?;
 
-    // let vote_module_msg = msg
-    //     .voting_registry_module_instantiate_info
-    //     .into_wasm_msg(env.contract.address.clone());
-    // let vote_module_msg: SubMsg<NeutronMsg> =
-    //     SubMsg::reply_on_success(vote_module_msg, VOTE_MODULE_INSTANTIATE_REPLY_ID);
+    let vote_module_msg = msg
+        .voting_registry_module_instantiate_info
+        .into_wasm_msg(env.contract.address.clone());
+    let vote_module_msg: SubMsg<NeutronMsg> =
+        SubMsg::reply_on_success(vote_module_msg, VOTE_MODULE_INSTANTIATE_REPLY_ID);
 
     // Instantiate ICA helper contract which will handle remote accounts
     let ica_module_msg: SubMsg<NeutronMsg> = SubMsg::reply_on_success(
@@ -107,7 +107,7 @@ pub fn instantiate(
     Ok(Response::new()
         .add_attribute("action", "instantiate")
         .add_attribute("sender", info.sender)
-        // .add_submessage(vote_module_msg)
+        .add_submessage(vote_module_msg)
         // .add_submessage(icq_module_msg)
         .add_submessages(proposal_module_submsgs)
         .add_submessage(ica_module_msg))

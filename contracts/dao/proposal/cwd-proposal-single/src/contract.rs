@@ -196,18 +196,14 @@ pub fn execute_propose(
         expiration
     ).as_str());
 
+    let total_power = get_total_power(deps.as_ref(), config.dao, Some(env.block.height))?;
+
     // TODO: move the voting power check in one place, possibly all in voting contract
     // let chains_involve = aggregate_involved_chains(msgs.clone());
     // deps.api.debug(format!(
     //     "WASMDEBUG: chains_involve: {:?}",
     //     chains_involve
     // ).as_str());
-    // let total_power = get_all_chain_power(
-    //     deps.as_ref(),
-    //     config.dao,
-    //     Some(env.block.height),
-    //     chains_involve,
-    // )?;
     // deps.api.debug(format!(
     //     "WASMDEBUG: total_power: {:?}",
     //     total_power
@@ -223,7 +219,7 @@ pub fn execute_propose(
             min_voting_period: config.min_voting_period.map(|min| min.after(&env.block)),
             expiration,
             threshold: config.threshold,
-            total_power: Uint128::from(10000u128),    // TODO: fetch from voting contract using ICQ
+            total_power,    // TODO: fetch from voting contract using ICQ
             msgs,
             status: Status::Open,
             votes: Votes::zero(),
@@ -327,10 +323,9 @@ pub fn execute_execute(
     let old_status = prop.status;
     prop.update_status(&env.block);
 
-    // TODO: revert to previous after testing (Uncomment)
-    // if prop.status != Status::Passed {
-    //     return Err(ContractError::NotPassed {});
-    // }
+    if prop.status != Status::Passed {
+        return Err(ContractError::NotPassed {});
+    }
 
     prop.status = Status::Executed;
     PROPOSALS.save(deps.storage, proposal_id, &prop)?;

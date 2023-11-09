@@ -39,7 +39,7 @@ pub struct InstantiateMsg {
 
     /// Instantiate information for the core contract's voting
     /// power module.
-    // pub voting_registry_module_instantiate_info: ModuleInstantiateInfo,
+    pub voting_registry_module_instantiate_info: ModuleInstantiateInfo,
     
     /// Instantiate information for the ica helper contract
     pub ica_helper_module_instantiate_info: ModuleInstantiateInfo,
@@ -212,12 +212,12 @@ pub enum ProposalType {
     // BringRemoteFund{
     //     demand_info: Vec<FundInfo>
     // },
-    ProposeFunds{
+    ProposeFunds {
         demand_info: Vec<FundInfo>
     },
-    RandomMsg{
+    RandomMsg {
         msg: Vec<WasmMsg>
-    }
+    },
 }
 
 impl From<ProposalType> for CosmosMsg<ProposalType> {
