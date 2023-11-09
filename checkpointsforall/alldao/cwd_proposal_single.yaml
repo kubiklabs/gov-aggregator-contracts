@@ -1,0 +1,9 @@
+default:
+  deployInfo:
+    codeId: 22
+    contractCodeHash: not_required
+    deployTimestamp: Thu Nov 09 2023 15:12:23 GMT+0530 (India Standard Time)
+  instantiateInfo:
+    - instantiateTag: default_instantiate
+      contractAddress: neutron1ntppezzavpk3ea2y3x4kwdhzs803vl4w0ckk3neegtmmlze0gw8qqrkgfx
+      instantiateTimestamp: Thu Nov 09 2023 15:12:54 GMT+0530 (India Standard Time)

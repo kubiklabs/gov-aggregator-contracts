@@ -2,26 +2,26 @@ import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { SigningStargateClient } from "@cosmjs/stargate";
 
 const config = [
-    {
-        mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
-        amount: "100000000", // amount to transfer from src chain to sink chain
-        denom: "uatom",
-        prefix: "cosmos",
-        chain_id: "gaia-test-2",
-        channel_id: "channel-0",
-        chain_rpc: "http://45.250.253.23:16657",
-        interchainAccount: "cosmos18zc2laaztm9hck6wmpvcdk9ptscdnrzx8rttecw57xwm0kzjyr5s5dyq0v"
-    },
     // {
     //     mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
     //     amount: "100000000", // amount to transfer from src chain to sink chain
-    //     denom: "ujuno",
-    //     prefix: "juno",
-    //     chain_id: "juno-test-3",
+    //     denom: "uatom",
+    //     prefix: "cosmos",
+    //     chain_id: "gaia-test-2",
     //     channel_id: "channel-0",
-    //     chain_rpc: "http://45.250.253.23:36657",
-    //     interchainAccount: "juno1t87jxpq5hysgqagfy5umh2ld77jxkdel9t82v4f0ajemsxx9h09sy8cewp"
+    //     chain_rpc: "http://45.250.253.23:16657",
+    //     interchainAccount: "cosmos18zc2laaztm9hck6wmpvcdk9ptscdnrzx8rttecw57xwm0kzjyr5s5dyq0v"
     // },
+    {
+        mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
+        amount: "100000000", // amount to transfer from src chain to sink chain
+        denom: "ujuno",
+        prefix: "juno",
+        chain_id: "juno-test-3",
+        channel_id: "channel-0",
+        chain_rpc: "http://45.250.253.23:36657",
+        interchainAccount: "juno1w36j9m3ktju0rycwd3zpelretgdlu9ju53rg6c35syjur2e36wmqv2h09t"
+    },
     {
         mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
         amount: "100000000", // amount to transfer from src chain to sink chain
@@ -30,7 +30,7 @@ const config = [
         chain_id: "osmo-test-4",
         channel_id: "channel-0",
         chain_rpc: "http://45.250.253.23:46657",
-        interchainAccount: "osmo1v8las4m2dgkktfhqqc36pxqzqsmjcjyak4n6nvpky9uf8a3yrxsqsfspnm"
+        interchainAccount: "osmo1jjjd4sjk22lc03yt3cxm8l9njua0x40t7upz5w73mg5375n29kcqmy7qg7"
     },
 
 ]

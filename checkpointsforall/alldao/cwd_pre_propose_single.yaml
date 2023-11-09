@@ -1,0 +1,5 @@
+default:
+  deployInfo:
+    codeId: 21
+    contractCodeHash: not_required
+    deployTimestamp: Thu Nov 09 2023 15:12:13 GMT+0530 (India Standard Time)

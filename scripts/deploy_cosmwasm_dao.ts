@@ -207,7 +207,7 @@ async function run () {
 
   const core_state = await dao_core.dumpState();
   console.log("core_state", core_state);
-
+/*
   // Update the contractAddress in Proposal contract
   proposal.instantiatedWithAddress(core_state.proposal_modules[0].address);
   console.log(chalk.cyan("Updated Proposal module address: "), proposal.contractAddress);
@@ -283,7 +283,7 @@ async function run () {
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(junoMoreAccountInfo, null, 2));
 
   await sleep(120);  // wait for addr to be funded manually
-
+*/
   // // propose a text proposal with [] msgs
   // const text_prop_create = await proposal.propose(
   //   {
@@ -337,52 +337,67 @@ async function run () {
   // );
   // console.log(chalk.cyan("Response: "), get_fund_prop_create);
 
-  const text_prop_ask_fund = await proposal.propose(
+  // const text_prop_ask_fund = await proposal.propose(
+  //   {
+  //     account: contract_owner,
+  //     customFees: {
+  //       amount: [{ amount: "75000", denom: nativeDenom }],
+  //       gas: "300000",
+  //     },
+  //   },
+  //   {
+  //     title: "This is the spend proposal to spend funds",
+  //     description: "spend funds",
+  //     msgs: [
+  //       {
+  //         "custom": {
+  //           "spend_fund": {
+  //             "funds": [
+  //               {
+  //                 "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",  // ibc denom
+  //                 "amount": "40000000"
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       }
+  //     ],
+  //     proposer: null,  // null for all allowed, addr for pre-propose module
+  //   }
+  // );
+  // console.log("spend fund, ",text_prop_ask_fund)  
+
+  // Query all proposals
+  const proposals_list = await proposal.listProposals(
+    {
+      limit: 10,
+      startAfter: null,
+    },
+  );
+  console.log(chalk.cyan("Proposals list: "), proposals_list);
+
+  // Query first proposal
+  const proposals_first = await proposal.proposal(
+    {
+      proposalId: 2,
+    },
+  );
+  console.log(chalk.cyan("First proposal: "), proposals_first);
+
+
+  const execute_third = await proposal.execute(
     {
       account: contract_owner,
       customFees: {
-        amount: [{ amount: "75000", denom: nativeDenom }],
-        gas: "300000",
+        amount: [{ amount: "125000", denom: nativeDenom }],
+        gas: "500000",
       },
     },
     {
-      title: "This is the spend proposal to spend funds",
-      description: "spend funds",
-      msgs: [
-        {
-          "custom": {
-            "spend_fund": {
-              "funds": [
-                {
-                  "denom": "",  // ibc denom
-                  "amount": "40000000"
-                }
-              ]
-            }
-          }
-        }
-      ],
-      proposer: null,  // null for all allowed, addr for pre-propose module
+      proposalId: 2,
     }
   );
-  console.log("spend fund, ",text_prop_ask_fund)  
-
-  // Query all proposals
-  // const proposals_list = await proposal.listProposals(
-  //   {
-  //     limit: 10,
-  //     startAfter: null,
-  //   },
-  // );
-  // console.log(chalk.cyan("Proposals list: "), proposals_list);
-
-  // Query first proposal
-  // const proposals_first = await proposal.proposal(
-  //   {
-  //     proposalId: 1,
-  //   },
-  // );
-  // console.log(chalk.cyan("First proposal: "), proposals_first);
+  console.log(chalk.cyan("Execute 2 proposal,for spend fund: "), execute_third);
 }
 
 module.exports = { default: run };

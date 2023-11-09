@@ -1,4 +1,4 @@
-const gaia_remotenet_accounts = [
+const gaia_localnet_accounts = [
   {
     name: 'account_0',
     address: 'cosmos1m9l358xunhhwds0568za49mzhvuxx9uxre5tud',
@@ -65,7 +65,7 @@ const gaia_remotenet_accounts = [
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   }
 ];
-const juno_remotenet_accounts = [
+const juno_localnet_accounts = [
   {
     name: 'account_0',
     address: 'juno1m9l358xunhhwds0568za49mzhvuxx9ux4thsm3',
@@ -132,7 +132,8 @@ const juno_remotenet_accounts = [
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   },
 ];
-const osmo_remotenet_accounts = [
+
+const osmo_localnet_accounts = [
   {
     name: 'account_0',
     address: 'osmo1m9l358xunhhwds0568za49mzhvuxx9uxtz8m2l',
@@ -199,8 +200,17 @@ const osmo_remotenet_accounts = [
     mnemonic: 'miss win girl project sponsor want theme absorb olympic survey axis rate exercise blue reunion know affair velvet verify model crop ticket wave photo'
   },
 ];
+
+const neutron_testnet_accounts = [
+  {
+    name: 'account_0',
+    address: 'neutron1jtdje5vq42sknl22r4wu9sahryu5wcrdqsccjh',
+    mnemonic: 'category fine rapid trumpet dune early wish under nothing dance property wreck'
+  },
+];
+
 // accounnt-0 receive atom and juno through ibc
-const neutron_remotenet_accounts = [
+const neutron_localnet_accounts = [
   {
     name: 'account_0',
     address: 'neutron1m9l358xunhhwds0568za49mzhvuxx9ux8xafx2',
@@ -268,42 +278,14 @@ const neutron_remotenet_accounts = [
   },
 ];
 
-const neutron_testnet_accounts = [
-  {
-    name: 'account_0',
-    address: 'neutron1jtdje5vq42sknl22r4wu9sahryu5wcrdqsccjh',
-    mnemonic: 'category fine rapid trumpet dune early wish under nothing dance property wreck'
-  },
-];
-
 const neutron_mainnet_accounts = [
-];
-
-const gaia_localnet_accounts = [
-  {
-    name: 'account_0',
-    address: 'cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw',
-    mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
-  },
-];
-
-const neutron_localnet_accounts = [
-  {
-    name: 'account_0',
-    address: 'neutron1m9l358xunhhwds0568za49mzhvuxx9ux8xafx2',
-    mnemonic: 'banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass'
-  },
-  {
-    name: 'account_1',
-    address: 'neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf',
-    mnemonic: 'veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only'
-  },
 ];
 
 const networks = {
   neutron_localnet: {
-    endpoint: 'http://localhost:26657/',
-    chainId: 'test-1',
+    // endpoint: 'http://localhost:26657/',
+    endpoint: 'http://45.250.253.23:26657/',
+    chainId: 'neutron-test-1',
     accounts: neutron_localnet_accounts,
     fees: {
       upload: {
@@ -321,8 +303,9 @@ const networks = {
     },
   },
   gaia_localnet: {
-    endpoint: 'http://localhost:16657/',
-    chainId: 'test-2',
+    // endpoint: 'http://localhost:16657/',
+    endpoint: 'http://45.250.253.23:16657/',
+    chainId: 'gaia-test-2',
     accounts: gaia_localnet_accounts,
     fees: {
       upload: {
@@ -339,48 +322,11 @@ const networks = {
       }
     },
   },
-  neutron_remotenet: {
-    endpoint: 'http://45.250.253.23:26657/',
-    chainId: 'neutron-test-1',
-    accounts: neutron_remotenet_accounts,
-    fees: {
-      upload: {
-        amount: [{ amount: "750000", denom: "untrn" }],
-        gas: "3000000",
-      },
-      init: {
-        amount: [{ amount: "250000", denom: "untrn" }],
-        gas: "1000000",
-      },
-      exec: {
-        amount: [{ amount: "250000", denom: "untrn" }],
-        gas: "1000000",
-      }
-    },
-  },
-  gaia_remotenet: {
-    endpoint: 'http://45.250.253.23:16657/',
-    chainId: 'gaia-test-2',
-    accounts: gaia_remotenet_accounts,
-    fees: {
-      upload: {
-        amount: [{ amount: "750000", denom: "uatom" }],
-        gas: "3000000",
-      },
-      init: {
-        amount: [{ amount: "250000", denom: "uatom" }],
-        gas: "1000000",
-      },
-      exec: {
-        amount: [{ amount: "250000", denom: "uatom" }],
-        gas: "1000000",
-      }
-    },
-  },
-  juno_remotenet: {
+  juno_localnet: {
     endpoint: 'http://45.250.253.23:36657/',
+    // endpoint: 'http://localhost:36657/',
     chainId: 'juno-test-3',
-    accounts: juno_remotenet_accounts,
+    accounts: juno_localnet_accounts,
     fees: {
       upload: {
         amount: [{ amount: "750000", denom: "ujuno" }],
@@ -396,10 +342,11 @@ const networks = {
       }
     },
   },
-  osmo_remotenet: {
+  osmo_localnet: {
     endpoint: 'http://45.250.253.23:46657/',
+    // endpoint: 'http://localhost:46657/',
     chainId: 'osmo-test-4',
-    accounts: osmo_remotenet_accounts,
+    accounts: osmo_localnet_accounts,
     fees: {
       upload: {
         amount: [{ amount: "750000", denom: "uosmo" }],
@@ -459,15 +406,11 @@ module.exports = {
   networks: {
     default: networks.neutron_localnet,
     testnet: networks.neutron_testnet,
-    mainnet: networks.neutron_mainnet,
-
     localnet: networks.neutron_localnet,
     localgaia: networks.gaia_localnet,
-
-    remotenet: networks.neutron_remotenet,
-    remotegaia: networks.gaia_remotenet,
-    remotejuno: networks.juno_remotenet,
-    remoteosmo: networks.osmo_remotenet,
+    localjuno: networks.juno_localnet,
+    localosmo: networks.osmo_localnet,
+    mainnet: networks.neutron_mainnet,
   },
   localnetworks: {
     neutron: {
