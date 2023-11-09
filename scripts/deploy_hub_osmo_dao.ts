@@ -4,9 +4,11 @@ import { getAccountByName } from "@kubiklabs/wasmkit";
 import { CwdCoreContract } from "../artifacts/typescript_schema/CwdCoreContract";
 import { IcqHelperContract } from "../artifacts/typescript_schema/IcqHelperContract";
 import { IcaHelperContract } from "../artifacts/typescript_schema/IcaHelperContract";
+import { NeutronVaultContract } from "../artifacts/typescript_schema/NeutronVaultContract";
 import { ChainRegistryContract } from "../artifacts/typescript_schema/ChainRegistryContract";
 import { CwdProposalSingleContract } from "../artifacts/typescript_schema/CwdProposalSingleContract";
 import { CwdPreProposeSingleContract } from "../artifacts/typescript_schema/CwdPreProposeSingleContract";
+import { NeutronVotingRegistryContract } from "../artifacts/typescript_schema/NeutronVotingRegistryContract";
 
 function sleep(seconds: number) {
   console.log("Sleeping for " + seconds + " seconds");
@@ -64,6 +66,14 @@ async function run () {
   const ica_helper = new IcaHelperContract();
   await ica_helper.setupClient();
 
+  const voting_registry = new NeutronVotingRegistryContract();
+  await voting_registry.setupClient();
+
+  const hub_voting_vault = new NeutronVaultContract("hub_voting_vault");
+  await hub_voting_vault.setupClient();
+  const osmo_voting_vault = new NeutronVaultContract("osmo_voting_vault");
+  await osmo_voting_vault.setupClient();
+
   // Deploy Chain Registry
   const deploy_chain_registry = await chain_registry.deploy(
     contract_owner,
@@ -73,26 +83,6 @@ async function run () {
     }
   );
   console.log(chalk.cyan("Response: "), deploy_chain_registry);
-
-  // // Init Chain Registry
-  // const init_chain_registry = await chain_registry.instantiate(
-  //   {},
-  //   `Chain Registry contract ${runTs}`,
-  //   contract_owner
-  // );
-  // console.log(chalk.cyan("Response: "), init_chain_registry);
-
-  // // Update chain registry for gaia
-  // const update_gaia_connection = await chain_registry.updateChainInfo(
-  //   {
-  //     account: contract_owner,
-  //   },
-  //   {
-  //     connectionId: "connection0",
-  //     remoteChain: "test2",
-  //   },
-  // );
-  // console.log(chalk.cyan("Response: "), update_gaia_connection);
 
   // Deploy Cwd Core
   const deploy_dao_core = await dao_core.deploy(
@@ -144,6 +134,66 @@ async function run () {
   );
   console.log(chalk.cyan("Response: "), deploy_ica_helper);
 
+  // Deploy Voting Registry
+  const deploy_voting_registry = await voting_registry.deploy(
+    contract_owner,
+    {
+      amount: [{ amount: "13000", denom: nativeDenom }],
+      gas: "5000000",
+    }
+  );
+  console.log(chalk.cyan("Response: "), deploy_voting_registry);
+
+  // Deploy Hub Voting vault
+  const deploy_hub_voting_vault = await hub_voting_vault.deploy(
+    contract_owner,
+    {
+      amount: [{ amount: "13000", denom: nativeDenom }],
+      gas: "5000000",
+    }
+  );
+  console.log(chalk.cyan("Response: "), deploy_hub_voting_vault);
+
+  // Init Hub Voting vault
+  const init_hub_voting_vault = await hub_voting_vault.instantiate(
+    {
+      denom: atomDenom,
+      description: "Hub Voting vault contract",
+      icq_helper: icq_helper.contractAddress,
+      name: "Hub Voting vault",
+      owner: contract_owner.account.address,
+      remote_chain_id: atomChainId,
+    },
+    `Hub Voting vault contract ${runTs}`,
+    contract_owner
+  );
+  console.log(chalk.cyan("Response: "), init_hub_voting_vault);
+
+  // Deploy Osmo Voting vault
+  const deploy_osmo_voting_vault = await osmo_voting_vault.deploy(
+    contract_owner,
+    {
+      amount: [{ amount: "13000", denom: nativeDenom }],
+      gas: "5000000",
+    }
+  );
+  console.log(chalk.cyan("Response: "), deploy_osmo_voting_vault);
+
+  // Init Osmo Voting vault
+  const init_osmo_voting_vault = await osmo_voting_vault.instantiate(
+    {
+      denom: osmoDenom,
+      description: "Osmo Voting vault contract",
+      icq_helper: icq_helper.contractAddress,
+      name: "Osmo Voting vault",
+      owner: contract_owner.account.address,
+      remote_chain_id: osmoChainId,
+    },
+    `Osmo Voting vault contract ${runTs}`,
+    contract_owner
+  );
+  console.log(chalk.cyan("Response: "), init_osmo_voting_vault);
+
   // Init Cwd Core with CodeId of Proposal, ICQ helper, ICA helper
   const core_contract_info = await dao_core.instantiate(
     {
@@ -192,12 +242,24 @@ async function run () {
           })).toString("base64"),
         }
       ],
+      voting_registry_module_instantiate_info: {
+        admin: null,
+        code_id: voting_registry.codeId,
+        label: `Voting registry Contract ${runTs}`,
+        msg: Buffer.from(JSON.stringify({
+            owner: contract_owner.account.address,  // TODO: replace with DAO core address
+            voting_vaults: [
+              hub_voting_vault.contractAddress,
+              osmo_voting_vault.contractAddress,
+            ],
+        })).toString("base64"),
+      },
     },
     `DAO Core contract ${runTs}`,
     contract_owner,
     undefined,
     { // custom fees
-      amount: [{ amount: "25000", denom: "untrn" }],
+      amount: [{ amount: "25000", denom: nativeDenom }],
       gas: "2000000",
     }
   );

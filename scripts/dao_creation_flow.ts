@@ -220,7 +220,7 @@ async function run () {
       ],
       voting_registry_module_instantiate_info: {
         admin: null,
-        code_id: ica_helper.codeId,
+        code_id: voting_registry.codeId,
         label: `Voting registry Contract ${runTs}`,
         msg: Buffer.from(JSON.stringify({
             owner: contract_owner.account.address,  // TODO: replace with DAO core address
@@ -228,7 +228,7 @@ async function run () {
               voting_vault.contractAddress,
             ],
         })).toString("base64"),
-      }
+      },
     },
     `DAO Core contract ${runTs}`,
     contract_owner
