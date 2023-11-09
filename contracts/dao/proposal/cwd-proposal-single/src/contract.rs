@@ -1,10 +1,11 @@
 use std::ptr::null;
+use std::vec;
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult, Storage, SubMsg, WasmMsg, Uint128,
+    StdResult, Storage, SubMsg, WasmMsg, Uint128, Coin, BankMsg,
 };
 use cw2::set_contract_version;
 use cw_storage_plus::Bound;
@@ -335,7 +336,7 @@ pub fn execute_execute(
     prop.status = Status::Executed;
     PROPOSALS.save(deps.storage, proposal_id, &prop)?;
 
-    let mut converted_wasm_msg = Vec::new();
+    let mut converted_wasm_msg:Vec<CosmosMsg> = Vec::new();
     for propmsg in prop.msgs.clone() {
             match propmsg {
                 cosmwasm_std::CosmosMsg::Custom(ProposalType::ProposeFunds { demand_info }) => {
@@ -358,8 +359,24 @@ pub fn execute_execute(
                             })?, 
                             funds: vec![]
                         };
-                        converted_wasm_msg.push(message);
+                        converted_wasm_msg.push(cosmwasm_std::CosmosMsg::Wasm(message));
                     }
+                },
+                cosmwasm_std::CosmosMsg::Custom(ProposalType::SpendFund { funds }) => {
+                    let mut vec_coin = Vec::new();
+
+                    for fund in funds {
+                        vec_coin.push(Coin{
+                            denom: fund.denom,
+                            amount: fund.amount
+                        });
+                    }
+
+                    let message = BankMsg::Send { 
+                        to_address: prop.proposer.to_string(), 
+                        amount: vec_coin 
+                    };
+                    converted_wasm_msg.push(cosmwasm_std::CosmosMsg::Bank(message));
                 },
                 cosmwasm_std::CosmosMsg::Custom(ProposalType::RandomMsg { mut msg }) => {
                     converted_wasm_msg.append(&mut msg)

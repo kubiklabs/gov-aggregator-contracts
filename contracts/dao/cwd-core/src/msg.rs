@@ -99,7 +99,7 @@ pub enum IcaHelperMsg {
 pub enum ExecuteMsg {
     /// Callable by proposal modules. The DAO will execute the
     /// messages in the hook in order.
-    ExecuteProposalHook { msgs: Vec<WasmMsg> },
+    ExecuteProposalHook { msgs: Vec<CosmosMsg> },
     /// Pauses the DAO for a set duration.
     /// When paused the DAO is unable to execute proposals
     Pause { duration: Duration },
@@ -215,8 +215,11 @@ pub enum ProposalType {
     ProposeFunds{
         demand_info: Vec<FundInfo>
     },
+    SpendFund{
+        funds: Vec<Asset>
+    },
     RandomMsg{
-        msg: Vec<WasmMsg>
+        msg: Vec<CosmosMsg>
     }
 }
 
@@ -238,6 +241,11 @@ pub struct FundInfo {
     pub amount: Uint128,
     pub denom: String,
     pub interchain_account_id: String
+}
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct Asset {
+    pub amount: Uint128,
+    pub denom: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ChainStake {

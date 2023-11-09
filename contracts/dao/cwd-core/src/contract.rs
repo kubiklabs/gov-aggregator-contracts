@@ -119,7 +119,7 @@ pub fn execute(
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     // No actions can be performed while the DAO is paused.
     if let Some(expiration) = PAUSED.may_load(deps.storage)? {
         if !expiration.is_expired(&env.block) {
@@ -154,7 +154,7 @@ pub fn execute_pause(
     env: Env,
     sender: Addr,
     pause_duration: Duration,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if sender != env.contract.address {
         return Err(ContractError::Unauthorized {});
     }
@@ -172,8 +172,8 @@ pub fn execute_pause(
 pub fn execute_proposal_hook(
     deps: Deps,
     sender: Addr,
-    msgs: Vec<WasmMsg>,
-) -> Result<Response<ProposalType>, ContractError> {
+    msgs: Vec<CosmosMsg>,
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     let module = PROPOSAL_MODULES
         .may_load(deps.storage, sender.clone())?
         .ok_or(ContractError::Unauthorized {})?;
@@ -206,7 +206,7 @@ pub fn execute_update_config(
     env: Env,
     sender: Addr,
     config: Config,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -232,7 +232,7 @@ pub fn execute_update_voting_module(
     env: Env,
     sender: Addr,
     module: ModuleInstantiateInfo,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -251,7 +251,7 @@ pub fn execute_update_proposal_modules(
     sender: Addr,
     to_add: Vec<ModuleInstantiateInfo>,
     to_disable: Vec<String>,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -303,7 +303,7 @@ pub fn execute_set_item(
     sender: Addr,
     key: String,
     value: String,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }
@@ -320,7 +320,7 @@ pub fn execute_remove_item(
     env: Env,
     sender: Addr,
     key: String,
-) -> Result<Response<ProposalType>, ContractError> {
+) -> Result<Response<cosmwasm_std::Empty>, ContractError> {
     if env.contract.address != sender {
         return Err(ContractError::Unauthorized {});
     }

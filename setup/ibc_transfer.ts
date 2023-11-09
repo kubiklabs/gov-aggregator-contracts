@@ -31,7 +31,7 @@ const config = [
     },
 
 ]
-const recipientAddress = "neutron1m9l358xunhhwds0568za49mzhvuxx9ux8xafx2";
+const recipientAddress = "neutron1wpqx4mhe5hmgte8s4etam4syfxjt83zwvejhgsmcludfpt5hd6kquxtjd3";
 
 
 async function ibcTransfer() {
