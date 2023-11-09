@@ -281,25 +281,25 @@ async function run () {
     interchainAccountId: interchainAccountOsmo,
   });
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(osmoMoreAccountInfo, null, 2));
-  await sleep(30);  // wait for addr to be funded manually
+  await sleep(120);  // wait for addr to be funded manually
 
   // propose a text proposal with [] msgs
-  const text_prop_create = await proposal.propose(
-    {
-      account: contract_owner,
-      customFees: {
-        amount: [{ amount: "75000", denom: nativeDenom }],
-        gas: "300000",
-      },
-    },
-    {
-      title: "This is first proposal",
-      description: "This is a text proposal",
-      msgs: [],
-      proposer: null,  // null for all allowed, addr for pre-propose module
-    }
-  );
-  console.log(chalk.cyan("Response: "), text_prop_create);
+  // const text_prop_create = await proposal.propose(
+  //   {
+  //     account: contract_owner,
+  //     customFees: {
+  //       amount: [{ amount: "75000", denom: nativeDenom }],
+  //       gas: "300000",
+  //     },
+  //   },
+  //   {
+  //     title: "This is first proposal",
+  //     description: "This is a text proposal",
+  //     msgs: [],
+  //     proposer: null,  // null for all allowed, addr for pre-propose module
+  //   }
+  // );
+  // console.log(chalk.cyan("Response: "), text_prop_create);
 
   // // propose a text proposal with [GetFunds] msgs
   // const get_fund_prop_create = await proposal.propose(
@@ -335,6 +335,37 @@ async function run () {
   //   }
   // );
   // console.log(chalk.cyan("Response: "), get_fund_prop_create);
+/*
+  const text_prop_create_all_chain = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is the spend proposal to spend funds",
+      description: "spend funds",
+      msgs: [
+        {
+          "custom": {
+            "spend_fund": {
+              "funds": [
+                {
+                  "denom": "",  // ibc denom
+                  "amount": "40000000"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+
+  console.log("create proposal for asking fund from all chains, ",text_prop_create_all_chain)
 
   // Query all proposals
   const proposals_list = await proposal.listProposals(
@@ -344,7 +375,9 @@ async function run () {
     },
   );
   console.log(chalk.cyan("Proposals list: "), proposals_list);
-
+  
+  console.log("waiting for dao core to get funded manually for testing")
+  await sleep(120);
   // Query first proposal
   const proposals_first = await proposal.proposal(
     {
@@ -352,6 +385,7 @@ async function run () {
     },
   );
   console.log(chalk.cyan("First proposal: "), proposals_first);
+  */
 }
 
 module.exports = { default: run };

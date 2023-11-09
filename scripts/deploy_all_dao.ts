@@ -217,7 +217,7 @@ async function run () {
 
   const core_state = await dao_core.dumpState();
   console.log("core_state", core_state);
-/*
+
   // Update the contractAddress in Proposal contract
   proposal.instantiatedWithAddress(core_state.proposal_modules[0].address);
   console.log(chalk.cyan("Updated Proposal module address: "), proposal.contractAddress);
@@ -325,7 +325,7 @@ async function run () {
   console.log(chalk.cyan("Response: "), "more account info: ", JSON.stringify(junoMoreAccountInfo, null, 2));
 
   await sleep(150);  // wait for addr to be funded manually
-*/
+
   /*
   const text_prop_create_gaia = await proposal.propose(
     {
@@ -522,6 +522,36 @@ async function run () {
   // );
 
   // console.log("create proposal for asking fund from all chains, ",text_prop_create_all_chain)
+  const text_prop_create_all_chain = await proposal.propose(
+    {
+      account: contract_owner,
+      customFees: {
+        amount: [{ amount: "75000", denom: nativeDenom }],
+        gas: "300000",
+      },
+    },
+    {
+      title: "This is the spend proposal to spend funds",
+      description: "spend funds",
+      msgs: [
+        {
+          "custom": {
+            "spend_fund": {
+              "funds": [
+                {
+                  "denom": "",
+                  "amount": ""
+                }
+              ]
+            }
+          }
+        }
+      ],
+      proposer: null,  // null for all allowed, addr for pre-propose module
+    }
+  );
+
+  console.log("create proposal for asking fund from all chains, ",text_prop_create_all_chain)
 
   // Query all proposals
   const proposals_list = await proposal.listProposals(

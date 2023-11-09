@@ -12,16 +12,16 @@ const config = [
         chain_rpc: "http://45.250.253.23:16657",
         interchainAccount: "cosmos18zc2laaztm9hck6wmpvcdk9ptscdnrzx8rttecw57xwm0kzjyr5s5dyq0v"
     },
-    {
-        mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
-        amount: "100000000", // amount to transfer from src chain to sink chain
-        denom: "ujuno",
-        prefix: "juno",
-        chain_id: "juno-test-3",
-        channel_id: "channel-0",
-        chain_rpc: "http://45.250.253.23:36657",
-        interchainAccount: "juno1t87jxpq5hysgqagfy5umh2ld77jxkdel9t82v4f0ajemsxx9h09sy8cewp"
-    },
+    // {
+    //     mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
+    //     amount: "100000000", // amount to transfer from src chain to sink chain
+    //     denom: "ujuno",
+    //     prefix: "juno",
+    //     chain_id: "juno-test-3",
+    //     channel_id: "channel-0",
+    //     chain_rpc: "http://45.250.253.23:36657",
+    //     interchainAccount: "juno1t87jxpq5hysgqagfy5umh2ld77jxkdel9t82v4f0ajemsxx9h09sy8cewp"
+    // },
     {
         mnemonic: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass",
         amount: "100000000", // amount to transfer from src chain to sink chain
